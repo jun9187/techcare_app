@@ -5,10 +5,21 @@ import 'firebase_options.dart';
 import 'services/auth_service.dart';
 import 'blocs/auth/auth_bloc.dart';
 import 'screens/auth/login_screen.dart';
+import 'screens/auth/register_screen.dart';
+import 'screens/profile_screen.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
+  } catch (e) {
+    debugPrint("Firebase initialization error: $e");
+  }
+
   runApp(const TechCareApp());
 }
 
@@ -20,12 +31,20 @@ class TechCareApp extends StatelessWidget {
     return RepositoryProvider(
       create: (context) => AuthService(),
       child: BlocProvider(
-        create: (context) => AuthBloc(context.read<AuthService>()),
+        create: (context) => AuthBloc(RepositoryProvider.of<AuthService>(context)),
         child: MaterialApp(
+          title: 'TechCare',
           debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            brightness: Brightness.dark,
+            primaryColor: const Color(0xFF800000),
+          ),
           home: LoginScreen(),
           routes: {
-            '/home': (context) => const Scaffold(body: Center(child: Text("Home Page"))),
+            '/login': (context) => LoginScreen(),
+            '/register': (context) => RegisterScreen(),
+            '/profile': (context) => const ProfileScreen(),
+            '/home': (context) => const ProfileScreen(), // Redirecting home to profile for now
           },
         ),
       ),
