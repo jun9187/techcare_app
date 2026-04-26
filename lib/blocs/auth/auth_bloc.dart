@@ -17,6 +17,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     });
 
+    on<RegisterRequested>((event, emit) async {
+      emit(AuthLoading());
+      try {
+        final result = await authService.registerWithEmail(
+          email: event.email,
+          password: event.password,
+          name: event.name,
+          matricNumber: event.matricNumber,
+        );
+        emit(Authenticated(result.user!.uid));
+      } catch (e) {
+        emit(AuthError(e.toString()));
+      }
+    });
+
     on<GoogleLoginRequested>((event, emit) async {
       emit(AuthLoading());
       try {

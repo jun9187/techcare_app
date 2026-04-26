@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_event.dart';
 import '../../blocs/auth/auth_state.dart';
@@ -37,34 +38,120 @@ class LoginScreen extends StatelessWidget {
                 const Text("Welcome back!", style: TextStyle(color: Colors.white, fontSize: 34, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 40),
 
-                // Custom Modern Fields (Placeholder for your styled widget)
-                TextField(controller: _emailController, decoration: const InputDecoration(hintText: "UTM Email", hintStyle: TextStyle(color: Colors.white24))),
+                TextField(
+                  controller: _emailController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    hintText: "Email Address",
+                    hintStyle: TextStyle(color: Colors.white24),
+                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                  ),
+                ),
                 const SizedBox(height: 20),
-                TextField(controller: _passwordController, obscureText: true, decoration: const InputDecoration(hintText: "Password", hintStyle: TextStyle(color: Colors.white24))),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    hintText: "Password",
+                    hintStyle: TextStyle(color: Colors.white24),
+                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                  ),
+                ),
 
-                const SizedBox(height: 40),
-
-                // Main Login Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 64,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: utmMaroon),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
                     onPressed: () {
-                      context.read<AuthBloc>().add(LoginRequested(_emailController.text, _passwordController.text));
+                      if (_emailController.text.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Please enter your email address first.")),
+                        );
+                        return;
+                      }
+                      FirebaseAuth.instance.sendPasswordResetEmail(email: _emailController.text).then((value) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Password reset email sent! Check your inbox.")),
+                        );
+                      }).catchError((error) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("Error: ${error.toString()}")),
+                        );
+                      });
                     },
-                    child: const Text("Sign In", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    child: const Text("Forgot Password?", style: TextStyle(color: goldHighlight)),
                   ),
                 ),
 
                 const SizedBox(height: 20),
-                // Google Login Button
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 64,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: utmMaroon,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                    ),
+                    onPressed: () {
+                      context.read<AuthBloc>().add(LoginRequested(_emailController.text, _passwordController.text));
+                    },
+                    child: const Text("Sign In", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Modern Google Button
                 SizedBox(
                   width: double.infinity,
                   height: 64,
                   child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      side: BorderSide.none,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                    ),
                     onPressed: () => context.read<AuthBloc>().add(GoogleLoginRequested()),
-                    child: const Text("Continue with Google", style: TextStyle(color: goldHighlight)),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.network(
+                          'https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png',
+                          height: 24,
+                          width: 24,
+                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.account_circle, color: Colors.blue),
+                        ),
+                        const SizedBox(width: 12),
+                        const Flexible(
+                          child: Text(
+                            "Sign in with Google",
+                            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600, fontSize: 16),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+                Center(
+                  child: TextButton(
+                    onPressed: () => Navigator.pushNamed(context, '/register'),
+                    child: RichText(
+                      text: const TextSpan(
+                        text: "Don't have an account? ",
+                        style: TextStyle(color: Colors.white70),
+                        children: [
+                          TextSpan(
+                            text: "Sign Up",
+                            style: TextStyle(color: goldHighlight, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ],
