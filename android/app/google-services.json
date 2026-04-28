@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "1015852388369",
+    "project_id": "techcare-4ad50",
+    "storage_bucket": "techcare-4ad50.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1015852388369:android:48fb131856155f0789e1b0",
+        "android_client_info": {
+          "package_name": "com.example.techcare_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1015852388369-4qcs3gsogadf0h9khju10k5724a48m02.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.techcare_app",
+            "certificate_hash": "27db91a730ada67de10ce7e3a8426e1d79fcc6f0"
+          }
+        },
+        {
+          "client_id": "1015852388369-ncrou6iql720rrra113poibvd7vrshu0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_mOpcCcz1mxoiJ4vY0blo8r2_u7CxFXc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1015852388369-ncrou6iql720rrra113poibvd7vrshu0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1015852388369-qgon0gvc2m0g76nfnd6s6ou5m12tadvc.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.techcareApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

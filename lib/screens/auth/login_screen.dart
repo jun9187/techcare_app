@@ -62,22 +62,35 @@ class LoginScreen extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {
-                      if (_emailController.text.isEmpty) {
+                    onPressed: () async {
+                      final email = _emailController.text.trim();
+
+                      if (email.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Please enter your email address first.")),
+                          const SnackBar(
+                            content: Text("Please enter your email address."),
+                          ),
                         );
                         return;
                       }
-                      FirebaseAuth.instance.sendPasswordResetEmail(email: _emailController.text).then((value) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Password reset email sent! Check your inbox.")),
+
+                      try {
+                        await FirebaseAuth.instance.sendPasswordResetEmail(
+                          email: email,
                         );
-                      }).catchError((error) {
+
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Error: ${error.toString()}")),
+                          const SnackBar(
+                            content: Text("Reset password email sent."),
+                          ),
                         );
-                      });
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Failed to send reset email."),
+                          ),
+                        );
+                      }
                     },
                     child: const Text("Forgot Password?", style: TextStyle(color: goldHighlight)),
                   ),
