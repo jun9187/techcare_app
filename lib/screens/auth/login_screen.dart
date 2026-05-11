@@ -300,12 +300,12 @@ class _RoleCard extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(22),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          decoration: BoxDecoration(
-            color: selected ? utmMaroon : cardGrey,
-            borderRadius: BorderRadius.circular(22),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        decoration: BoxDecoration(
+          color: selected ? utmMaroon : cardGrey,
+          borderRadius: BorderRadius.circular(22),
           border: Border.all(
             color: selected ? goldHighlight : Colors.white.withValues(alpha: 0.06),
             width: selected ? 1.6 : 1,

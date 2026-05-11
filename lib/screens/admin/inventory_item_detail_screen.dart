@@ -1,8 +1,9 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
 
+import '../../blocs/cart/cart_cubit.dart';
+import '../../models/cart_item.dart';
 import '../../models/inventory_item.dart';
 import '../../services/inventory_service.dart';
 import 'inventory_item_form_screen.dart';
@@ -16,10 +17,12 @@ class InventoryItemDetailScreen extends StatefulWidget {
     super.key,
     required this.item,
     required this.inventoryService,
+    this.isAdmin = false,
   });
 
   final InventoryItem item;
   final InventoryService inventoryService;
+  final bool isAdmin;
 
   @override
   State<InventoryItemDetailScreen> createState() => _InventoryItemDetailScreenState();
@@ -29,31 +32,48 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
   late InventoryItem _item;
   late final TextEditingController _quantityController;
   late final FocusNode _quantityFocusNode;
-  Timer? _quantityDebounce;
-  bool _isProgrammaticQuantityChange = false;
   bool _isUpdatingQuantity = false;
+  int _cartQuantity = 1;
+
+  bool get _isCartQuantityAtLimit => _cartQuantity >= _item.quantity;
+
+  bool get _hasPendingQuantityChange {
+    final parsed = int.tryParse(_quantityController.text.trim());
+    if (parsed == null) return false;
+    return parsed.clamp(0, 9999) != _item.quantity;
+  }
 
   @override
   void initState() {
     super.initState();
     _item = widget.item;
+    _cartQuantity = _item.quantity > 0 ? 1 : 0;
     _quantityController = TextEditingController(text: '${_item.quantity}');
+    _quantityController.addListener(_handleQuantityDraftChanged);
     _quantityFocusNode = FocusNode();
   }
 
-  Future<void> _adjustQuantity(int delta) async {
-    final nextValue = (_item.quantity + delta).clamp(0, 9999);
-    if (nextValue == _item.quantity) return;
+  void _handleQuantityDraftChanged() {
+    if (!mounted) return;
+    setState(() {});
+  }
 
-    _setQuantityText('$nextValue');
-    await _submitQuantity();
+  Future<void> _adjustQuantity(int delta) async {
+    final currentValue =
+        int.tryParse(_quantityController.text.trim()) ?? _item.quantity;
+    final nextValue = (currentValue + delta).clamp(0, 9999);
+    if (nextValue == currentValue) return;
+
+    _quantityController.value = TextEditingValue(
+      text: '$nextValue',
+      selection: TextSelection.collapsed(offset: '$nextValue'.length),
+    );
   }
 
   Future<void> _submitQuantity() async {
-    _quantityDebounce?.cancel();
     final parsed = int.tryParse(_quantityController.text.trim());
     if (parsed == null) {
-      _setQuantityText('${_item.quantity}');
+      _quantityController.text = '${_item.quantity}';
       return;
     }
 
@@ -61,7 +81,7 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
     if (_isUpdatingQuantity) return;
 
     if (nextValue == _item.quantity) {
-      _setQuantityText('$nextValue');
+      _quantityController.text = '$nextValue';
       return;
     }
 
@@ -73,47 +93,23 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
       );
       if (!mounted) return;
       setState(() => _item = _item.copyWith(quantity: nextValue));
-      _setQuantityText('$nextValue');
+      _quantityController.text = '$nextValue';
     } catch (error) {
       if (!mounted) return;
-      _setQuantityText('${_item.quantity}');
+      _quantityController.text = '${_item.quantity}';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Unable to update quantity: $error')),
       );
     } finally {
       if (mounted) {
         setState(() => _isUpdatingQuantity = false);
-        if (_quantityController.text.trim() != '${_item.quantity}') {
-          _scheduleQuantitySubmit();
-        }
       }
     }
   }
 
-  void _setQuantityText(String value) {
-    _isProgrammaticQuantityChange = true;
-    _quantityController.value = TextEditingValue(
-      text: value,
-      selection: TextSelection.collapsed(offset: value.length),
-    );
-    _isProgrammaticQuantityChange = false;
-  }
-
-  void _scheduleQuantitySubmit() {
-    _quantityDebounce?.cancel();
-    _quantityDebounce = Timer(const Duration(milliseconds: 450), () {
-      _submitQuantity();
-    });
-  }
-
-  void _handleQuantityChanged(String value) {
-    if (_isProgrammaticQuantityChange) return;
-    _scheduleQuantitySubmit();
-  }
-
   @override
   void dispose() {
-    _quantityDebounce?.cancel();
+    _quantityController.removeListener(_handleQuantityDraftChanged);
     _quantityController.dispose();
     _quantityFocusNode.dispose();
     super.dispose();
@@ -176,14 +172,16 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
         backgroundColor: _backgroundDark,
         title: Text(_item.name),
         actions: [
-          IconButton(
-            onPressed: _editItem,
-            icon: const Icon(Icons.edit_outlined),
-          ),
-          IconButton(
-            onPressed: _deleteItem,
-            icon: const Icon(Icons.delete_outline),
-          ),
+          if (widget.isAdmin) ...[
+            IconButton(
+              onPressed: _editItem,
+              icon: const Icon(Icons.edit_outlined),
+            ),
+            IconButton(
+              onPressed: _deleteItem,
+              icon: const Icon(Icons.delete_outline),
+            ),
+          ]
         ],
       ),
       body: ListView(
@@ -236,42 +234,121 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
             ),
           ),
           const SizedBox(height: 18),
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: _cardGrey,
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: Row(
-              children: [
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Stock Control',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 18,
+          if (widget.isAdmin) ...[
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: _cardGrey,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Row(
+                children: [
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Stock Control',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 18,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 16),
+                  _QuantityStepper(
+                    controller: _quantityController,
+                    focusNode: _quantityFocusNode,
+                    isLoading: _isUpdatingQuantity,
+                    onDecrease: () => _adjustQuantity(-1),
+                    onIncrease: () => _adjustQuantity(1),
+                  ),
+                  const SizedBox(width: 12),
+                  FilledButton(
+                    onPressed: _isUpdatingQuantity || !_hasPendingQuantityChange
+                        ? null
+                        : _submitQuantity,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _utmMaroon,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                    ),
+                    child: const Text(
+                      'Save',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.remove, color: Colors.white),
+                  onPressed: _cartQuantity > 1
+                      ? () {
+                          setState(() => _cartQuantity--);
+                        }
+                      : null,
                 ),
-                const SizedBox(width: 16),
-                _QuantityStepper(
-                  controller: _quantityController,
-                  focusNode: _quantityFocusNode,
-                  isLoading: _isUpdatingQuantity,
-                  onChanged: _handleQuantityChanged,
-                  onSubmitted: _submitQuantity,
-                  onDecrease: () => _adjustQuantity(-1),
-                  onIncrease: () => _adjustQuantity(1),
+                Text(
+                  _cartQuantity.toString(),
+                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add, color: Colors.white),
+                  onPressed: _isCartQuantityAtLimit
+                      ? null
+                      : () {
+                          setState(() => _cartQuantity++);
+                        },
                 ),
               ],
             ),
-          ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade900,
+                minimumSize: const Size(double.infinity, 50),
+              ),
+              onPressed: _item.quantity <= 0
+                  ? null
+                  : () {
+                context.read<CartCubit>().addItem(
+                  CartItem(
+                    id: widget.item.id,
+                    name: widget.item.name,
+                    image: widget.item.imageUrl,
+                    code: widget.item.code,
+                    quantity: _cartQuantity,
+                    maxQuantity: _item.quantity,
+                  ),
+                );
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      _cartQuantity >= _item.quantity
+                          ? 'Added to cart up to available stock'
+                          : 'Added to cart',
+                    ),
+                  ),
+                );
+              },
+              child: const Text(
+                'Add to Cart',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -283,8 +360,6 @@ class _QuantityStepper extends StatelessWidget {
     required this.controller,
     required this.focusNode,
     required this.isLoading,
-    required this.onChanged,
-    required this.onSubmitted,
     required this.onDecrease,
     required this.onIncrease,
   });
@@ -292,8 +367,6 @@ class _QuantityStepper extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
   final bool isLoading;
-  final ValueChanged<String> onChanged;
-  final VoidCallback onSubmitted;
   final VoidCallback onDecrease;
   final VoidCallback onIncrease;
 
@@ -326,10 +399,7 @@ class _QuantityStepper extends StatelessWidget {
                 isCollapsed: true,
                 contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 18),
               ),
-              onChanged: onChanged,
-              onSubmitted: (_) => onSubmitted(),
               onTapOutside: (_) => focusNode.unfocus(),
-              onEditingComplete: onSubmitted,
             ),
           ),
           Container(
