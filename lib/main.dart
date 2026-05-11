@@ -6,6 +6,7 @@ import 'services/auth_service.dart';
 import 'blocs/auth/auth_bloc.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
+import 'screens/home_router.dart';
 import 'screens/profile_screen.dart';
 
 void main() async {
@@ -39,12 +40,12 @@ class TechCareApp extends StatelessWidget {
             brightness: Brightness.dark,
             primaryColor: const Color(0xFF800000),
           ),
-          home: LoginScreen(),
+          home: const HomeRouter(),
           routes: {
-            '/login': (context) => LoginScreen(),
+            '/login': (context) => const LoginScreen(),
             '/register': (context) => RegisterScreen(),
             '/profile': (context) => const ProfileScreen(),
-            '/home': (context) => const ProfileScreen(), // Redirecting home to profile for now
+            '/home': (context) => const HomeRouter(),
           },
         ),
       ),

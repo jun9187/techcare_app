@@ -1,0 +1,1 @@
+-keep class com.example.techcare_app.MainActivity { *; }

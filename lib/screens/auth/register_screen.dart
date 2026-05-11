@@ -89,6 +89,7 @@ class RegisterScreen extends StatelessWidget {
                             password: _passwordController.text,
                             name: _nameController.text,
                             matricNumber: _matricController.text,
+                            role: 'student',
                           ));
                     },
                     child: const Text(
@@ -110,7 +111,9 @@ class RegisterScreen extends StatelessWidget {
                       side: BorderSide.none,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
                     ),
-                    onPressed: () => context.read<AuthBloc>().add(GoogleLoginRequested()),
+                    onPressed: () => context.read<AuthBloc>().add(
+                      GoogleLoginRequested(role: 'student'),
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,

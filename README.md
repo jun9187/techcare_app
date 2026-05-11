@@ -2,6 +2,25 @@
 
 A new Flutter project.
 
+## Firebase Setup
+
+This project does not commit Firebase configuration files. Before running the
+app, generate the local Firebase files with FlutterFire CLI.
+
+```bash
+dart pub global activate flutterfire_cli
+flutterfire configure
+```
+
+This will generate local files such as:
+
+- `lib/firebase_options.dart`
+- `android/app/google-services.json`
+- `ios/Runner/GoogleService-Info.plist`
+
+These files are required for local development, but they are ignored by Git and
+should not be committed to the repository.
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
