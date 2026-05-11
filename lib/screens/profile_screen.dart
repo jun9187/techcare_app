@@ -6,7 +6,9 @@ import '../blocs/auth/auth_event.dart';
 import '../blocs/auth/auth_state.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen({super.key, this.showAppBar = true});
+
+  final bool showAppBar;
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -52,32 +54,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0F0F0F),
-      appBar: AppBar(
-        title: const Text("User Profile", style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: const Color(0xFF800000),
-        elevation: 0,
-        centerTitle: true,
-        leading: _isEditing 
-          ? IconButton(
-              icon: const Icon(Icons.close_rounded),
-              onPressed: () => setState(() => _isEditing = false),
+      appBar: widget.showAppBar
+          ? AppBar(
+              title: const Text("User Profile", style: TextStyle(fontWeight: FontWeight.bold)),
+              backgroundColor: const Color(0xFF800000),
+              elevation: 0,
+              centerTitle: true,
+              leading: _isEditing
+                  ? IconButton(
+                      icon: const Icon(Icons.close_rounded),
+                      onPressed: () => setState(() => _isEditing = false),
+                    )
+                  : null,
+              actions: [
+                if (!_isEditing)
+                  TextButton(
+                    onPressed: () => setState(() => _isEditing = true),
+                    child: const Text("Edit", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                IconButton(
+                  icon: const Icon(Icons.logout_rounded),
+                  onPressed: () {
+                    context.read<AuthBloc>().add(LogoutRequested());
+                    Navigator.pushReplacementNamed(context, '/login');
+                  },
+                )
+              ],
             )
           : null,
-        actions: [
-          if (!_isEditing)
-            TextButton(
-              onPressed: () => setState(() => _isEditing = true),
-              child: const Text("Edit", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            onPressed: () {
-              context.read<AuthBloc>().add(LogoutRequested());
-              Navigator.pushReplacementNamed(context, '/login');
-            },
-          )
-        ],
-      ),
       body: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
           if (state is AuthLoading) {

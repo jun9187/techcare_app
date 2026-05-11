@@ -27,6 +27,7 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         multiDexEnabled = true
+        multiDexKeepProguard = file("multidex-config.pro")
     }
 
     buildTypes {
