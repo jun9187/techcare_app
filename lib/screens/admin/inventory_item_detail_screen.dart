@@ -1,10 +1,10 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../models/inventory_item.dart';
 import '../../services/inventory_service.dart';
+import '../../blocs/cart/cart_cubit.dart';
+import '../../models/cart_item.dart';
 import 'inventory_item_form_screen.dart';
 
 const Color _backgroundDark = Color(0xFF0F0F0F);
@@ -27,95 +27,17 @@ class InventoryItemDetailScreen extends StatefulWidget {
 
 class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
   late InventoryItem _item;
-  late final TextEditingController _quantityController;
-  late final FocusNode _quantityFocusNode;
-  Timer? _quantityDebounce;
-  bool _isProgrammaticQuantityChange = false;
-  bool _isUpdatingQuantity = false;
+  int quantity = 1;
+  final isAdmin = false;
 
   @override
   void initState() {
     super.initState();
     _item = widget.item;
-    _quantityController = TextEditingController(text: '${_item.quantity}');
-    _quantityFocusNode = FocusNode();
-  }
-
-  Future<void> _adjustQuantity(int delta) async {
-    final nextValue = (_item.quantity + delta).clamp(0, 9999);
-    if (nextValue == _item.quantity) return;
-
-    _setQuantityText('$nextValue');
-    await _submitQuantity();
-  }
-
-  Future<void> _submitQuantity() async {
-    _quantityDebounce?.cancel();
-    final parsed = int.tryParse(_quantityController.text.trim());
-    if (parsed == null) {
-      _setQuantityText('${_item.quantity}');
-      return;
-    }
-
-    final nextValue = parsed.clamp(0, 9999);
-    if (_isUpdatingQuantity) return;
-
-    if (nextValue == _item.quantity) {
-      _setQuantityText('$nextValue');
-      return;
-    }
-
-    setState(() => _isUpdatingQuantity = true);
-    try {
-      await widget.inventoryService.updateQuantity(
-        itemId: _item.id,
-        quantity: nextValue,
-      );
-      if (!mounted) return;
-      setState(() => _item = _item.copyWith(quantity: nextValue));
-      _setQuantityText('$nextValue');
-    } catch (error) {
-      if (!mounted) return;
-      _setQuantityText('${_item.quantity}');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to update quantity: $error')),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _isUpdatingQuantity = false);
-        if (_quantityController.text.trim() != '${_item.quantity}') {
-          _scheduleQuantitySubmit();
-        }
-      }
-    }
-  }
-
-  void _setQuantityText(String value) {
-    _isProgrammaticQuantityChange = true;
-    _quantityController.value = TextEditingValue(
-      text: value,
-      selection: TextSelection.collapsed(offset: value.length),
-    );
-    _isProgrammaticQuantityChange = false;
-  }
-
-  void _scheduleQuantitySubmit() {
-    _quantityDebounce?.cancel();
-    _quantityDebounce = Timer(const Duration(milliseconds: 450), () {
-      _submitQuantity();
-    });
-  }
-
-  void _handleQuantityChanged(String value) {
-    if (_isProgrammaticQuantityChange) return;
-    _scheduleQuantitySubmit();
   }
 
   @override
   void dispose() {
-    _quantityDebounce?.cancel();
-    _quantityController.dispose();
-    _quantityFocusNode.dispose();
     super.dispose();
   }
 
@@ -176,14 +98,16 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
         backgroundColor: _backgroundDark,
         title: Text(_item.name),
         actions: [
-          IconButton(
-            onPressed: _editItem,
-            icon: const Icon(Icons.edit_outlined),
-          ),
-          IconButton(
-            onPressed: _deleteItem,
-            icon: const Icon(Icons.delete_outline),
-          ),
+          if (isAdmin) ...[
+            IconButton(
+              onPressed: _editItem,
+              icon: const Icon(Icons.edit_outlined),
+            ),
+            IconButton(
+              onPressed: _deleteItem,
+              icon: const Icon(Icons.delete_outline),
+            ),
+          ]
         ],
       ),
       body: ListView(
@@ -236,146 +160,53 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
             ),
           ),
           const SizedBox(height: 18),
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: _cardGrey,
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: Row(
-              children: [
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Stock Control',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 18,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                _QuantityStepper(
-                  controller: _quantityController,
-                  focusNode: _quantityFocusNode,
-                  isLoading: _isUpdatingQuantity,
-                  onChanged: _handleQuantityChanged,
-                  onSubmitted: _submitQuantity,
-                  onDecrease: () => _adjustQuantity(-1),
-                  onIncrease: () => _adjustQuantity(1),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuantityStepper extends StatelessWidget {
-  const _QuantityStepper({
-    required this.controller,
-    required this.focusNode,
-    required this.isLoading,
-    required this.onChanged,
-    required this.onSubmitted,
-    required this.onDecrease,
-    required this.onIncrease,
-  });
-
-  final TextEditingController controller;
-  final FocusNode focusNode;
-  final bool isLoading;
-  final ValueChanged<String> onChanged;
-  final VoidCallback onSubmitted;
-  final VoidCallback onDecrease;
-  final VoidCallback onIncrease;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 56,
-      decoration: BoxDecoration(
-        color: Colors.black26,
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 88,
-            child: TextField(
-              controller: controller,
-              focusNode: focusNode,
-              keyboardType: TextInputType.number,
-              textInputAction: TextInputAction.done,
-              textAlign: TextAlign.center,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.remove, color: Colors.white),
+                onPressed: () {
+                  if (quantity > 1) {
+                    setState(() => quantity--);
+                  }
+                },
               ),
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                isCollapsed: true,
-                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+              Text(
+                quantity.toString(),
+                style: const TextStyle(color: Colors.white, fontSize: 18),
               ),
-              onChanged: onChanged,
-              onSubmitted: (_) => onSubmitted(),
-              onTapOutside: (_) => focusNode.unfocus(),
-              onEditingComplete: onSubmitted,
+              IconButton(
+                icon: const Icon(Icons.add, color: Colors.white),
+                onPressed: () {
+                  setState(() => quantity++);
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade900,
+              minimumSize: const Size(double.infinity, 50),
             ),
-          ),
-          Container(
-            width: 1,
-            height: double.infinity,
-            color: Colors.white10,
-          ),
-          SizedBox(
-            width: 52,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                AbsorbPointer(
-                  absorbing: isLoading,
-                  child: Opacity(
-                    opacity: isLoading ? 0.55 : 1,
-                    child: Column(
-                      children: [
-                        Expanded(
-                          child: InkWell(
-                            onTap: onIncrease,
-                            child: const Center(
-                              child: Icon(Icons.keyboard_arrow_up, color: Colors.white),
-                            ),
-                          ),
-                        ),
-                        Container(height: 1, color: Colors.white10),
-                        Expanded(
-                          child: InkWell(
-                            onTap: onDecrease,
-                            child: const Center(
-                              child: Icon(Icons.keyboard_arrow_down, color: Colors.white),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+            onPressed: () {
+              context.read<CartCubit>().addItem(
+                CartItem(
+                  id: widget.item.id,
+                  name: widget.item.name ?? 'Unknown',
+                  image: widget.item.imageUrl,
+                  code: widget.item.code ?? '',
+                  quantity: quantity,
                 ),
-                if (isLoading)
-                  const SizedBox(
-                    height: 16,
-                    width: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-              ],
+              );
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Added to cart")),
+              );
+            },
+            child: const Text(
+              "Add to Cart",
+              style: TextStyle(color: Colors.white),
             ),
           ),
         ],
