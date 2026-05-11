@@ -3,6 +3,7 @@ class CartItem {
   final String name;
   final String? image;
   final String code;
+  final int maxQuantity;
   int quantity;
 
   CartItem({
@@ -11,5 +12,6 @@ class CartItem {
     this.image,
     required this.code,
     required this.quantity,
+    required this.maxQuantity,
   });
 }

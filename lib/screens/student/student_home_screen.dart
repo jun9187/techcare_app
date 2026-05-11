@@ -1,58 +1,82 @@
 import 'package:flutter/material.dart';
-import 'student_inventory_screen.dart';
+
 import 'cart_screen.dart';
+import 'student_inventory_screen.dart';
 
 class StudentHomeScreen extends StatelessWidget {
-  const StudentHomeScreen({super.key});
+  const StudentHomeScreen({
+    super.key,
+    this.embedded = false,
+    this.onOpenInventory,
+    this.onOpenCart,
+  });
+
+  final bool embedded;
+  final VoidCallback? onOpenInventory;
+  final VoidCallback? onOpenCart;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        title: const Text("Student Home"),
-        backgroundColor: Colors.black,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            _card(
-              context,
-              "Browse Items",
-              () {
+    final content = Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          _card(
+            context,
+            'Browse Items',
+            () {
+              if (embedded && onOpenInventory != null) {
+                onOpenInventory!.call();
+              } else {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => const StudentInventoryScreen(),
                   ),
                 );
-              },
-            ),
-            const SizedBox(height: 20),
-            _card(
-              context,
-              "My Requests",
-              () {
-                Navigator.pushNamed(context, '/requests');
-              },
-            ),
-            const SizedBox(height: 20),
-            _card(
-              context,
-              "My Cart",
-              () {
+              }
+            },
+          ),
+          const SizedBox(height: 20),
+          _card(
+            context,
+            'My Requests',
+            () {
+              Navigator.pushNamed(context, '/requests');
+            },
+          ),
+          const SizedBox(height: 20),
+          _card(
+            context,
+            'My Cart',
+            () {
+              if (embedded && onOpenCart != null) {
+                onOpenCart!.call();
+              } else {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => const CartScreen(),
                   ),
                 );
-              },
-            ),
-          ],
-        ),
+              }
+            },
+          ),
+        ],
       ),
+    );
+
+    if (embedded) {
+      return ColoredBox(color: Colors.black, child: content);
+    }
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        title: const Text('Student Home'),
+        backgroundColor: Colors.black,
+      ),
+      body: content,
     );
   }
 

@@ -69,6 +69,7 @@ class _AdminInventoryDashboardScreenState
         builder: (_) => InventoryItemDetailScreen(
           item: item,
           inventoryService: _inventoryService,
+          isAdmin: true,
         ),
       ),
     );

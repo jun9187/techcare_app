@@ -23,9 +23,13 @@ class _StudentShellScreenState extends State<StudentShellScreen> {
   int _currentIndex = 0;
 
   late final List<Widget> _screens = [
-    const StudentHomeScreen(),
-    const StudentInventoryScreen(),
-    const CartScreen(),
+    StudentHomeScreen(
+      embedded: true,
+      onOpenInventory: () => setState(() => _currentIndex = 1),
+      onOpenCart: () => setState(() => _currentIndex = 2),
+    ),
+    const StudentInventoryScreen(embedded: true),
+    const CartScreen(embedded: true),
     const ProfileScreen(showAppBar: false),
   ];
 

@@ -59,6 +59,7 @@ class _StudentInventoryScreenState
         builder: (_) => InventoryItemDetailScreen(
           item: item,
           inventoryService: _inventoryService,
+          isAdmin: false,
         ),
       ),
     );

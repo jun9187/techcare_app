@@ -4,17 +4,16 @@ import '../../blocs/cart/cart_cubit.dart';
 import '../../models/cart_item.dart';
 
 class CartScreen extends StatelessWidget {
-  const CartScreen({super.key});
+  const CartScreen({
+    super.key,
+    this.embedded = false,
+  });
+
+  final bool embedded;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("My Cart"),
-        backgroundColor: Colors.black,
-      ),
-      backgroundColor: Colors.black,
-      body: BlocBuilder<CartCubit, List<CartItem>>(
+    final content = BlocBuilder<CartCubit, List<CartItem>>(
         builder: (context, cartItems) {
           if (cartItems.isEmpty) {
             return const Center(
@@ -72,11 +71,17 @@ class CartScreen extends StatelessWidget {
                                     ),
                                     IconButton(
                                       icon: const Icon(Icons.add, color: Colors.white),
-                                      onPressed: () {
-                                        context.read<CartCubit>().increaseQty(item.id);
-                                      },
+                                      onPressed: item.quantity >= item.maxQuantity
+                                          ? null
+                                          : () {
+                                              context.read<CartCubit>().increaseQty(item.id);
+                                            },
                                     ),
                                   ],
+                                ),
+                                Text(
+                                  'Available: ${item.maxQuantity}',
+                                  style: const TextStyle(color: Colors.white54, fontSize: 12),
                                 ),
                               ],
                             ),
@@ -123,7 +128,19 @@ class CartScreen extends StatelessWidget {
             ],
           );
         },
+    );
+
+    if (embedded) {
+      return ColoredBox(color: Colors.black, child: content);
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("My Cart"),
+        backgroundColor: Colors.black,
       ),
+      backgroundColor: Colors.black,
+      body: content,
     );
   }
 }
