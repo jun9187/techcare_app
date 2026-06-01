@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'firebase_options.dart';
 import 'services/auth_service.dart';
 import 'blocs/auth/auth_bloc.dart';
+import 'blocs/cart/cart_cubit.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/home_router.dart';
@@ -31,8 +32,13 @@ class TechCareApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return RepositoryProvider(
       create: (context) => AuthService(),
-      child: BlocProvider(
-        create: (context) => AuthBloc(RepositoryProvider.of<AuthService>(context)),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (context) => AuthBloc(RepositoryProvider.of<AuthService>(context)),
+          ),
+          BlocProvider(create: (_) => CartCubit()),
+        ],
         child: MaterialApp(
           title: 'TechCare',
           debugShowCheckedModeBanner: false,

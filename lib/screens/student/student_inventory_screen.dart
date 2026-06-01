@@ -2,16 +2,15 @@ import 'package:flutter/material.dart';
 
 import '../../models/inventory_item.dart';
 import '../../services/inventory_service.dart';
-import 'inventory_item_detail_screen.dart';
-import 'inventory_item_form_screen.dart';
+import '../admin/inventory_item_detail_screen.dart';
 
 const Color _backgroundDark = Color(0xFF0F0F0F);
 const Color _cardGrey = Color(0xFF1B1B1B);
 const Color _utmMaroon = Color(0xFF800000);
 const Color _gold = Color(0xFFFFD700);
 
-class AdminInventoryDashboardScreen extends StatefulWidget {
-  const AdminInventoryDashboardScreen({
+class StudentInventoryScreen extends StatefulWidget {
+  const StudentInventoryScreen({
     super.key,
     this.embedded = false,
   });
@@ -19,12 +18,12 @@ class AdminInventoryDashboardScreen extends StatefulWidget {
   final bool embedded;
 
   @override
-  State<AdminInventoryDashboardScreen> createState() =>
-      _AdminInventoryDashboardScreenState();
+  State<StudentInventoryScreen> createState() =>
+      _StudentInventoryScreenState();
 }
 
-class _AdminInventoryDashboardScreenState
-    extends State<AdminInventoryDashboardScreen> {
+class _StudentInventoryScreenState
+    extends State<StudentInventoryScreen> {
   final InventoryService _inventoryService = InventoryService();
   final TextEditingController _searchController = TextEditingController();
   String _selectedCategory = 'All';
@@ -53,15 +52,6 @@ class _AdminInventoryDashboardScreenState
     }).toList(growable: false);
   }
 
-  Future<void> _openAddItem() async {
-    await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => InventoryItemFormScreen(inventoryService: _inventoryService),
-      ),
-    );
-  }
-
   Future<void> _openItemDetail(InventoryItem item) async {
     await Navigator.push<bool>(
       context,
@@ -69,7 +59,7 @@ class _AdminInventoryDashboardScreenState
         builder: (_) => InventoryItemDetailScreen(
           item: item,
           inventoryService: _inventoryService,
-          isAdmin: true,
+          isAdmin: false,
         ),
       ),
     );
@@ -103,7 +93,6 @@ class _AdminInventoryDashboardScreenState
               child: ListView(
                 padding: EdgeInsets.fromLTRB(20, widget.embedded ? 16 : 12, 20, 100),
                 children: [
-                  if (!widget.embedded) const _WelcomePanel(),
                   const SizedBox(height: 18),
                   _SearchBar(
                     controller: _searchController,
@@ -167,16 +156,6 @@ class _AdminInventoryDashboardScreenState
                 ],
               ),
             ),
-            Positioned(
-              right: 20,
-              bottom: 20,
-              child: FloatingActionButton.extended(
-                onPressed: _openAddItem,
-                backgroundColor: _utmMaroon,
-                icon: const Icon(Icons.add),
-                label: const Text('Add Item'),
-              ),
-            ),
           ],
         );
       },
@@ -190,17 +169,7 @@ class _AdminInventoryDashboardScreenState
       backgroundColor: _backgroundDark,
       appBar: AppBar(
         backgroundColor: _backgroundDark,
-        title: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('TechCare'),
-            SizedBox(height: 2),
-            Text(
-              'Admin Inventory',
-              style: TextStyle(fontSize: 13, color: Colors.white70),
-            ),
-          ],
-        ),
+        title: const Text('Inventory'),
       ),
       body: content,
     );

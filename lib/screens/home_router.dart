@@ -6,6 +6,7 @@ import '../blocs/auth/auth_state.dart';
 import 'admin/admin_shell_screen.dart';
 import 'auth/login_screen.dart';
 import 'profile_screen.dart';
+import 'student/student_shell_screen.dart';
 
 class HomeRouter extends StatelessWidget {
   const HomeRouter({super.key});
@@ -27,7 +28,7 @@ class HomeRouter extends StatelessWidget {
     }
 
     if (state is Authenticated) {
-      return const ProfileScreen();
+      return const StudentShellScreen();
     }
 
     return const LoginScreen();
