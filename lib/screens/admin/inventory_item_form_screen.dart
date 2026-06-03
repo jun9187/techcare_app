@@ -12,18 +12,58 @@ const Color _cardGrey = Color(0xFF1B1B1B);
 const Color _utmMaroon = Color(0xFF800000);
 
 const Map<String, List<String>> _categoryOptions = {
-  'Microcontroller': ['Main Board', 'Development Board', 'Communication Module', 'Expansion Module'],
-  'Batteries and Casing': ['Battery', 'Battery Holder', 'Charging Part', 'Casing'],
+  'Microcontroller': [
+    'Main Board',
+    'Development Board',
+    'Communication Module',
+    'Expansion Module',
+  ],
+  'Batteries and Casing': [
+    'Battery',
+    'Battery Holder',
+    'Charging Part',
+    'Casing',
+  ],
   'Motors and Wheels': ['Motor', 'Wheel', 'Caster', 'Coupler', 'Drive Part'],
   'Pneumatic': ['Cylinder', 'Valve', 'Tube', 'Fitting', 'Air Part'],
-  'Sensors': ['Motion Sensor', 'Distance Sensor', 'Position Sensor', 'Environmental Sensor'],
-  'Adapter and Converter': ['Adapter', 'Converter', 'Regulator', 'Cable', 'Connector'],
+  'Sensors': [
+    'Motion Sensor',
+    'Distance Sensor',
+    'Position Sensor',
+    'Environmental Sensor',
+  ],
+  'Adapter and Converter': [
+    'Adapter',
+    'Converter',
+    'Regulator',
+    'Cable',
+    'Connector',
+  ],
   'Breadboard': ['Breadboard', 'Jumper Wire', 'Prototype Part'],
-  'Industrial PC': ['Mini PC', 'Controller PC', 'Industrial Display', 'Peripheral'],
-  'LCD Module': ['Character LCD', 'Graphic LCD', 'OLED Display', 'Touch Display'],
-  'Motor Driver': ['DC Motor Driver', 'Stepper Driver', 'Servo Driver', 'Driver Module'],
+  'Industrial PC': [
+    'Mini PC',
+    'Controller PC',
+    'Industrial Display',
+    'Peripheral',
+  ],
+  'LCD Module': [
+    'Character LCD',
+    'Graphic LCD',
+    'OLED Display',
+    'Touch Display',
+  ],
+  'Motor Driver': [
+    'DC Motor Driver',
+    'Stepper Driver',
+    'Servo Driver',
+    'Driver Module',
+  ],
   'Servo': ['Micro Servo', 'Standard Servo', 'Continuous Servo', 'Servo Part'],
-  'TechCare Cool ThingyMagic': ['Custom Module', 'Club Prototype', 'Special Part'],
+  'TechCare Cool ThingyMagic': [
+    'Custom Module',
+    'Club Prototype',
+    'Special Part',
+  ],
   'Webcam': ['USB Webcam', 'HD Webcam', 'Camera Accessory'],
   'Trivial': ['Tool', 'Fastener', 'Consumable', 'Miscellaneous'],
 };
@@ -41,7 +81,8 @@ class InventoryItemFormScreen extends StatefulWidget {
   bool get isEditing => item != null;
 
   @override
-  State<InventoryItemFormScreen> createState() => _InventoryItemFormScreenState();
+  State<InventoryItemFormScreen> createState() =>
+      _InventoryItemFormScreenState();
 }
 
 class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
@@ -63,18 +104,24 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
     super.initState();
     final item = widget.item;
     _nameController = TextEditingController(text: item?.name ?? '');
-    _quantityController = TextEditingController(text: item?.quantity.toString() ?? '0');
+    _quantityController = TextEditingController(
+      text: item?.totalAmount.toString() ?? '0',
+    );
     _locationController = TextEditingController(text: item?.location ?? '');
-    _descriptionController = TextEditingController(text: item?.description ?? '');
+    _descriptionController = TextEditingController(
+      text: item?.description ?? '',
+    );
     _imageUrl = item?.imageUrl ?? '';
 
-    _selectedCategory = item?.category.isNotEmpty == true &&
+    _selectedCategory =
+        item?.category.isNotEmpty == true &&
             _categoryOptions.containsKey(item!.category)
         ? item.category
         : _categoryOptions.keys.first;
 
     final subOptions = _categoryOptions[_selectedCategory]!;
-    _selectedSubCategory = item?.subCategory.isNotEmpty == true &&
+    _selectedSubCategory =
+        item?.subCategory.isNotEmpty == true &&
             subOptions.contains(item!.subCategory)
         ? item.subCategory
         : subOptions.first;
@@ -116,9 +163,9 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
       setState(() => _selectedImage = pickedFile);
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to pick image: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Unable to pick image: $error')));
     }
   }
 
@@ -145,6 +192,9 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
         );
       }
 
+      final totalAmount = int.parse(_quantityController.text.trim());
+      final holdingAmount = base?.holdingAmount ?? 0;
+      final rentedAmount = base?.rentedAmount ?? 0;
       final item = InventoryItem(
         id: base?.id ?? '',
         code: code,
@@ -153,7 +203,10 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
         subCategory: _selectedSubCategory,
         description: _descriptionController.text.trim(),
         location: _locationController.text.trim(),
-        quantity: int.parse(_quantityController.text.trim()),
+        totalAmount: totalAmount,
+        availableAmount: totalAmount - holdingAmount - rentedAmount,
+        holdingAmount: holdingAmount,
+        rentedAmount: rentedAmount,
         imageUrl: imageUrl,
         timestamp: base?.timestamp,
       );
@@ -167,9 +220,9 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
       Navigator.pop(context, true);
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to save item: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Unable to save item: $error')));
     } finally {
       if (mounted) {
         setState(() => _isSaving = false);
@@ -210,20 +263,25 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
             ),
             _buildField(
               _quantityController,
-              'Quantity',
+              'Total Amount',
               keyboardType: TextInputType.number,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) return 'Required';
-                if (int.tryParse(value.trim()) == null) return 'Enter a valid number';
+                final parsed = int.tryParse(value.trim());
+                if (parsed == null) {
+                  return 'Enter a valid number';
+                }
+                final activeAmount =
+                    (widget.item?.holdingAmount ?? 0) +
+                    (widget.item?.rentedAmount ?? 0);
+                if (parsed < activeAmount) {
+                  return 'Must be at least $activeAmount';
+                }
                 return null;
               },
             ),
             _buildField(_locationController, 'Location'),
-            _buildField(
-              _descriptionController,
-              'Description',
-              maxLines: 4,
-            ),
+            _buildField(_descriptionController, 'Description', maxLines: 4),
             _buildImageField(),
             const SizedBox(height: 24),
             SizedBox(
@@ -231,7 +289,9 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _utmMaroon,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
                 ),
                 onPressed: _isSaving ? null : _save,
                 child: Text(_isSaving ? 'Saving...' : 'Save Item'),
@@ -262,15 +322,13 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
         controller: controller,
         keyboardType: keyboardType,
         maxLines: maxLines,
-        validator: validator ??
+        validator:
+            validator ??
             (value) {
               if (!isRequired) return null;
               return value == null || value.trim().isEmpty ? 'Required' : null;
             },
-        decoration: InputDecoration(
-          labelText: label,
-          border: InputBorder.none,
-        ),
+        decoration: InputDecoration(labelText: label, border: InputBorder.none),
       ),
     );
   }
@@ -314,7 +372,9 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
                 child: OutlinedButton(
                   onPressed: _isSaving ? null : _pickImage,
                   child: Text(
-                    hasSelectedImage || hasExistingImage ? 'Change Image' : 'Upload Image',
+                    hasSelectedImage || hasExistingImage
+                        ? 'Change Image'
+                        : 'Upload Image',
                   ),
                 ),
               ),
@@ -363,15 +423,13 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
       return Image.network(
         _imageUrl,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => const Center(child: Text('Preview unavailable')),
+        errorBuilder: (context, error, stackTrace) =>
+            const Center(child: Text('Preview unavailable')),
       );
     }
 
     return const Center(
-      child: Text(
-        'No image selected',
-        style: TextStyle(color: Colors.white70),
-      ),
+      child: Text('No image selected', style: TextStyle(color: Colors.white70)),
     );
   }
 
@@ -396,10 +454,8 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
         ).copyWith(labelText: label),
         items: options
             .map(
-              (option) => DropdownMenuItem<String>(
-                value: option,
-                child: Text(option),
-              ),
+              (option) =>
+                  DropdownMenuItem<String>(value: option, child: Text(option)),
             )
             .toList(),
         onChanged: onChanged,

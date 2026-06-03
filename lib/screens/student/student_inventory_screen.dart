@@ -10,20 +10,15 @@ const Color _utmMaroon = Color(0xFF800000);
 const Color _gold = Color(0xFFFFD700);
 
 class StudentInventoryScreen extends StatefulWidget {
-  const StudentInventoryScreen({
-    super.key,
-    this.embedded = false,
-  });
+  const StudentInventoryScreen({super.key, this.embedded = false});
 
   final bool embedded;
 
   @override
-  State<StudentInventoryScreen> createState() =>
-      _StudentInventoryScreenState();
+  State<StudentInventoryScreen> createState() => _StudentInventoryScreenState();
 }
 
-class _StudentInventoryScreenState
-    extends State<StudentInventoryScreen> {
+class _StudentInventoryScreenState extends State<StudentInventoryScreen> {
   final InventoryService _inventoryService = InventoryService();
   final TextEditingController _searchController = TextEditingController();
   String _selectedCategory = 'All';
@@ -37,19 +32,23 @@ class _StudentInventoryScreenState
   List<InventoryItem> _applyFilters(List<InventoryItem> items) {
     final query = _searchController.text.trim().toLowerCase();
 
-    return items.where((item) {
-      final matchesCategory = _selectedCategory == 'All' ||
-          item.category.toLowerCase() == _selectedCategory.toLowerCase() ||
-          item.subCategory.toLowerCase() == _selectedCategory.toLowerCase();
-      final matchesQuery = query.isEmpty ||
-          item.name.toLowerCase().contains(query) ||
-          item.code.toLowerCase().contains(query) ||
-          item.category.toLowerCase().contains(query) ||
-          item.subCategory.toLowerCase().contains(query) ||
-          item.location.toLowerCase().contains(query);
+    return items
+        .where((item) {
+          final matchesCategory =
+              _selectedCategory == 'All' ||
+              item.category.toLowerCase() == _selectedCategory.toLowerCase() ||
+              item.subCategory.toLowerCase() == _selectedCategory.toLowerCase();
+          final matchesQuery =
+              query.isEmpty ||
+              item.name.toLowerCase().contains(query) ||
+              item.code.toLowerCase().contains(query) ||
+              item.category.toLowerCase().contains(query) ||
+              item.subCategory.toLowerCase().contains(query) ||
+              item.location.toLowerCase().contains(query);
 
-      return matchesCategory && matchesQuery;
-    }).toList(growable: false);
+          return matchesCategory && matchesQuery;
+        })
+        .toList(growable: false);
   }
 
   Future<void> _openItemDetail(InventoryItem item) async {
@@ -82,7 +81,9 @@ class _StudentInventoryScreenState
         final filteredItems = _applyFilters(items);
         final categories = <String>{
           'All',
-          ...items.map((item) => item.category).where((value) => value.isNotEmpty),
+          ...items
+              .map((item) => item.category)
+              .where((value) => value.isNotEmpty),
         }.toList(growable: false);
         return Stack(
           children: [
@@ -91,7 +92,12 @@ class _StudentInventoryScreenState
                 setState(() {});
               },
               child: ListView(
-                padding: EdgeInsets.fromLTRB(20, widget.embedded ? 16 : 12, 20, 100),
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  widget.embedded ? 16 : 12,
+                  20,
+                  100,
+                ),
                 children: [
                   const SizedBox(height: 18),
                   _SearchBar(
@@ -111,7 +117,8 @@ class _StudentInventoryScreenState
                         return ChoiceChip(
                           selected: selected,
                           label: Text(category),
-                          onSelected: (_) => setState(() => _selectedCategory = category),
+                          onSelected: (_) =>
+                              setState(() => _selectedCategory = category),
                           selectedColor: _utmMaroon,
                           backgroundColor: _cardGrey,
                           labelStyle: TextStyle(
@@ -176,71 +183,8 @@ class _StudentInventoryScreenState
   }
 }
 
-class _WelcomePanel extends StatelessWidget {
-  const _WelcomePanel();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF4A0D0D), Color(0xFF8B1E1E)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Inventory',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                Text(
-                  'Manage stock',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.76),
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 16),
-          Container(
-            height: 56,
-            width: 56,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: const Icon(
-              Icons.admin_panel_settings_rounded,
-              color: Colors.white,
-              size: 30,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _SearchBar extends StatelessWidget {
-  const _SearchBar({
-    required this.controller,
-    required this.onChanged,
-  });
+  const _SearchBar({required this.controller, required this.onChanged});
 
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
@@ -267,10 +211,7 @@ class _SearchBar extends StatelessWidget {
 }
 
 class _InventoryListCard extends StatelessWidget {
-  const _InventoryListCard({
-    required this.item,
-    required this.onTap,
-  });
+  const _InventoryListCard({required this.item, required this.onTap});
 
   final InventoryItem item;
   final VoidCallback onTap;
@@ -280,10 +221,11 @@ class _InventoryListCard extends StatelessWidget {
     final statusColor = item.isOutOfStock
         ? const Color(0xFFB42318)
         : item.isLowStock
-            ? _gold
-            : const Color(0xFF1E7B34);
-    final statusTextColor =
-        item.isLowStock && !item.isOutOfStock ? Colors.black : Colors.white;
+        ? _gold
+        : const Color(0xFF1E7B34);
+    final statusTextColor = item.isLowStock && !item.isOutOfStock
+        ? Colors.black
+        : Colors.white;
 
     return InkWell(
       onTap: onTap,
@@ -350,7 +292,10 @@ class _InventoryListCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 7,
+                  ),
                   decoration: BoxDecoration(
                     color: statusColor,
                     borderRadius: BorderRadius.circular(999),
@@ -365,7 +310,7 @@ class _InventoryListCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  '${item.quantity} unit${item.quantity == 1 ? '' : 's'}',
+                  'Available: ${item.availableAmount}',
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
@@ -424,7 +369,11 @@ class _InventoryErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 42),
+            const Icon(
+              Icons.error_outline_rounded,
+              color: Colors.redAccent,
+              size: 42,
+            ),
             const SizedBox(height: 12),
             const Text(
               'Unable to load inventory right now.',
