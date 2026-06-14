@@ -2,24 +2,21 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import '../firebase_options.dart';
 
 class AuthResult {
   final UserCredential credential;
   final String role;
 
-  AuthResult({
-    required this.credential,
-    required this.role,
-  });
+  AuthResult({required this.credential, required this.role});
 }
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email'],
-  );
+  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
 
   Stream<User?> get user => _auth.authStateChanges();
 
@@ -67,7 +64,7 @@ class AuthService {
       email: email,
       password: password,
     );
-    
+
     // Store user data in Firestore
     await _firestore.collection('users').doc(result.user!.uid).set({
       'uid': result.user!.uid,
@@ -86,13 +83,16 @@ class AuthService {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return null;
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      final UserCredential result = await _auth.signInWithCredential(credential);
+      final UserCredential result = await _auth.signInWithCredential(
+        credential,
+      );
 
       // Check if user exists in Firestore, if not create entry
       final userRef = _firestore.collection('users').doc(result.user!.uid);
@@ -122,6 +122,56 @@ class AuthService {
   Future<void> signOut() async {
     await _googleSignIn.signOut();
     await _auth.signOut();
+  }
+
+  Future<void> createUserAsAdmin({
+    required String email,
+    required String password,
+    required String name,
+    required String matricNumber,
+    required String role,
+  }) async {
+    final secondaryApp = await Firebase.initializeApp(
+      name: 'secondary_${DateTime.now().millisecondsSinceEpoch}',
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
+    try {
+      final secondaryAuth = FirebaseAuth.instanceFor(app: secondaryApp);
+      final credential = await secondaryAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      await _firestore.collection('users').doc(credential.user!.uid).set({
+        'uid': credential.user!.uid,
+        'email': email,
+        'name': name,
+        'matricNumber': matricNumber,
+        'role': role,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      await secondaryAuth.signOut();
+    } finally {
+      await secondaryApp.delete();
+    }
+  }
+
+  Future<void> updateUserRole({
+    required String uid,
+    required String newRole,
+  }) async {
+    await _firestore.collection('users').doc(uid).update({'role': newRole});
+  }
+
+  Stream<List<Map<String, dynamic>>> streamAllUsers() {
+    return _firestore
+        .collection('users')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map(
+          (snap) => snap.docs.map((d) => {'id': d.id, ...d.data()}).toList(),
+        );
   }
 
   Future<String> _resolveUserRole({
