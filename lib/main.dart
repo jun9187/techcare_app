@@ -6,7 +6,6 @@ import 'services/auth_service.dart';
 import 'blocs/auth/auth_bloc.dart';
 import 'blocs/cart/cart_cubit.dart';
 import 'screens/auth/login_screen.dart';
-//import 'screens/auth/register_screen.dart';
 import 'screens/home_router.dart';
 import 'screens/profile_screen.dart';
 

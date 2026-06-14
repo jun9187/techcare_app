@@ -229,28 +229,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 28),
-                  //Center(
-                  //child: TextButton(
-                  //onPressed: isLoading
-                  //? null
-                  //: () => Navigator.pushNamed(context, '/register'),
-                  //child: RichText(
-                  //text: const TextSpan(
-                  //text: "Don't have an account? ",
-                  //style: TextStyle(color: Colors.white70),
-                  //children: [
-                  //TextSpan(
-                  //text: 'Register as Student',
-                  //style: TextStyle(
-                  //color: goldHighlight,
-                  //fontWeight: FontWeight.bold,
-                  //),
-                  //),
-                  //],
-                  //),
-                  //),
-                  //),
-                  //),
                 ],
               ),
             ),
