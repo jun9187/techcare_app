@@ -6,6 +6,7 @@ import '../../blocs/cart/cart_cubit.dart';
 import '../../models/cart_item.dart';
 import '../../models/inventory_item.dart';
 import '../../services/inventory_service.dart';
+import '../student/cart_screen.dart';
 import 'inventory_item_form_screen.dart';
 
 const Color _backgroundDark = Color(0xFF0F0F0F);
@@ -25,7 +26,8 @@ class InventoryItemDetailScreen extends StatefulWidget {
   final bool isAdmin;
 
   @override
-  State<InventoryItemDetailScreen> createState() => _InventoryItemDetailScreenState();
+  State<InventoryItemDetailScreen> createState() =>
+      _InventoryItemDetailScreenState();
 }
 
 class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
@@ -35,20 +37,20 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
   bool _isUpdatingQuantity = false;
   int _cartQuantity = 1;
 
-  bool get _isCartQuantityAtLimit => _cartQuantity >= _item.quantity;
+  bool get _isCartQuantityAtLimit => _cartQuantity >= _item.availableAmount;
 
   bool get _hasPendingQuantityChange {
     final parsed = int.tryParse(_quantityController.text.trim());
     if (parsed == null) return false;
-    return parsed.clamp(0, 9999) != _item.quantity;
+    return parsed.clamp(0, 9999) != _item.totalAmount;
   }
 
   @override
   void initState() {
     super.initState();
     _item = widget.item;
-    _cartQuantity = _item.quantity > 0 ? 1 : 0;
-    _quantityController = TextEditingController(text: '${_item.quantity}');
+    _cartQuantity = _item.availableAmount > 0 ? 1 : 0;
+    _quantityController = TextEditingController(text: '${_item.totalAmount}');
     _quantityController.addListener(_handleQuantityDraftChanged);
     _quantityFocusNode = FocusNode();
   }
@@ -60,7 +62,7 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
 
   Future<void> _adjustQuantity(int delta) async {
     final currentValue =
-        int.tryParse(_quantityController.text.trim()) ?? _item.quantity;
+        int.tryParse(_quantityController.text.trim()) ?? _item.totalAmount;
     final nextValue = (currentValue + delta).clamp(0, 9999);
     if (nextValue == currentValue) return;
 
@@ -73,30 +75,30 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
   Future<void> _submitQuantity() async {
     final parsed = int.tryParse(_quantityController.text.trim());
     if (parsed == null) {
-      _quantityController.text = '${_item.quantity}';
+      _quantityController.text = '${_item.totalAmount}';
       return;
     }
 
     final nextValue = parsed.clamp(0, 9999);
     if (_isUpdatingQuantity) return;
 
-    if (nextValue == _item.quantity) {
+    if (nextValue == _item.totalAmount) {
       _quantityController.text = '$nextValue';
       return;
     }
 
     setState(() => _isUpdatingQuantity = true);
     try {
-      await widget.inventoryService.updateQuantity(
-        itemId: _item.id,
-        quantity: nextValue,
+      final updated = await widget.inventoryService.updateTotalAmount(
+        item: _item,
+        totalAmount: nextValue,
       );
       if (!mounted) return;
-      setState(() => _item = _item.copyWith(quantity: nextValue));
+      setState(() => _item = updated);
       _quantityController.text = '$nextValue';
     } catch (error) {
       if (!mounted) return;
-      _quantityController.text = '${_item.quantity}';
+      _quantityController.text = '${_item.totalAmount}';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Unable to update quantity: $error')),
       );
@@ -158,9 +160,9 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
       Navigator.pop(context, true);
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to delete item: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Unable to delete item: $error')));
     }
   }
 
@@ -181,7 +183,7 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
               onPressed: _deleteItem,
               icon: const Icon(Icons.delete_outline),
             ),
-          ]
+          ],
         ],
       ),
       body: ListView(
@@ -212,18 +214,35 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
                   runSpacing: 8,
                   children: [
                     _InfoPill(text: _item.category),
-                    if (_item.subCategory.isNotEmpty) _InfoPill(text: _item.subCategory),
+                    if (_item.subCategory.isNotEmpty)
+                      _InfoPill(text: _item.subCategory),
                   ],
                 ),
                 const SizedBox(height: 20),
                 _FieldRow(label: 'Code', value: _item.code),
                 _FieldRow(label: 'Name', value: _item.name),
                 _FieldRow(label: 'Location', value: _item.location),
-                _FieldRow(label: 'Quantity', value: '${_item.quantity}'),
+                if (widget.isAdmin) ...[
+                  _FieldRow(label: 'Total', value: '${_item.totalAmount}'),
+                  _FieldRow(
+                    label: 'Available',
+                    value: '${_item.availableAmount}',
+                  ),
+                  _FieldRow(label: 'Holding', value: '${_item.holdingAmount}'),
+                  _FieldRow(label: 'Rented', value: '${_item.rentedAmount}'),
+                ] else ...[
+                  _FieldRow(
+                    label: 'Available',
+                    value: '${_item.availableAmount}',
+                  ),
+                ],
                 const SizedBox(height: 14),
                 const Text(
                   'Description',
-                  style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -248,7 +267,7 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Stock Control',
+                          'Total Stock',
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
@@ -274,7 +293,10 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
                     style: FilledButton.styleFrom(
                       backgroundColor: _utmMaroon,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 18,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(18),
                       ),
@@ -319,30 +341,41 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
                 backgroundColor: Colors.red.shade900,
                 minimumSize: const Size(double.infinity, 50),
               ),
-              onPressed: _item.quantity <= 0
+              onPressed: _item.availableAmount <= 0
                   ? null
                   : () {
-                context.read<CartCubit>().addItem(
-                  CartItem(
-                    id: widget.item.id,
-                    name: widget.item.name,
-                    image: widget.item.imageUrl,
-                    code: widget.item.code,
-                    quantity: _cartQuantity,
-                    maxQuantity: _item.quantity,
-                  ),
-                );
+                      context.read<CartCubit>().addItem(
+                        CartItem(
+                          id: widget.item.id,
+                          name: widget.item.name,
+                          image: widget.item.imageUrl,
+                          code: widget.item.code,
+                          quantity: _cartQuantity,
+                          maxQuantity: _item.availableAmount,
+                        ),
+                      );
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      _cartQuantity >= _item.quantity
-                          ? 'Added to cart up to available stock'
-                          : 'Added to cart',
-                    ),
-                  ),
-                );
-              },
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            _cartQuantity >= _item.availableAmount
+                                ? 'Added to cart up to available stock'
+                                : 'Added to cart',
+                          ),
+                          action: SnackBarAction(
+                            label: 'View Cart',
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const CartScreen(),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    },
               child: const Text(
                 'Add to Cart',
                 style: TextStyle(color: Colors.white),
@@ -397,16 +430,15 @@ class _QuantityStepper extends StatelessWidget {
               decoration: const InputDecoration(
                 border: InputBorder.none,
                 isCollapsed: true,
-                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 18,
+                ),
               ),
               onTapOutside: (_) => focusNode.unfocus(),
             ),
           ),
-          Container(
-            width: 1,
-            height: double.infinity,
-            color: Colors.white10,
-          ),
+          Container(width: 1, height: double.infinity, color: Colors.white10),
           SizedBox(
             width: 52,
             child: Stack(
@@ -422,7 +454,10 @@ class _QuantityStepper extends StatelessWidget {
                           child: InkWell(
                             onTap: onIncrease,
                             child: const Center(
-                              child: Icon(Icons.keyboard_arrow_up, color: Colors.white),
+                              child: Icon(
+                                Icons.keyboard_arrow_up,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
@@ -431,7 +466,10 @@ class _QuantityStepper extends StatelessWidget {
                           child: InkWell(
                             onTap: onDecrease,
                             child: const Center(
-                              child: Icon(Icons.keyboard_arrow_down, color: Colors.white),
+                              child: Icon(
+                                Icons.keyboard_arrow_down,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
@@ -455,10 +493,7 @@ class _QuantityStepper extends StatelessWidget {
 }
 
 class _FieldRow extends StatelessWidget {
-  const _FieldRow({
-    required this.label,
-    required this.value,
-  });
+  const _FieldRow({required this.label, required this.value});
 
   final String label;
   final String value;
@@ -472,15 +507,15 @@ class _FieldRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 92,
-            child: Text(
-              label,
-              style: const TextStyle(color: Colors.white70),
-            ),
+            child: Text(label, style: const TextStyle(color: Colors.white70)),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -504,17 +539,17 @@ class _InfoPill extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600),
+        style: const TextStyle(
+          color: Colors.white70,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
 }
 
 class _ItemImage extends StatelessWidget {
-  const _ItemImage({
-    required this.imageUrl,
-    this.size = 96,
-  });
+  const _ItemImage({required this.imageUrl, this.size = 96});
 
   final String imageUrl;
   final double size;
@@ -528,7 +563,11 @@ class _ItemImage extends StatelessWidget {
         width: size,
         color: Colors.white,
         child: imageUrl.isEmpty
-            ? const Icon(Icons.inventory_2_outlined, size: 48, color: _utmMaroon)
+            ? const Icon(
+                Icons.inventory_2_outlined,
+                size: 48,
+                color: _utmMaroon,
+              )
             : Image.network(
                 imageUrl,
                 fit: BoxFit.cover,

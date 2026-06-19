@@ -11,10 +11,7 @@ const Color _utmMaroon = Color(0xFF800000);
 const Color _gold = Color(0xFFFFD700);
 
 class AdminInventoryDashboardScreen extends StatefulWidget {
-  const AdminInventoryDashboardScreen({
-    super.key,
-    this.embedded = false,
-  });
+  const AdminInventoryDashboardScreen({super.key, this.embedded = false});
 
   final bool embedded;
 
@@ -38,26 +35,31 @@ class _AdminInventoryDashboardScreenState
   List<InventoryItem> _applyFilters(List<InventoryItem> items) {
     final query = _searchController.text.trim().toLowerCase();
 
-    return items.where((item) {
-      final matchesCategory = _selectedCategory == 'All' ||
-          item.category.toLowerCase() == _selectedCategory.toLowerCase() ||
-          item.subCategory.toLowerCase() == _selectedCategory.toLowerCase();
-      final matchesQuery = query.isEmpty ||
-          item.name.toLowerCase().contains(query) ||
-          item.code.toLowerCase().contains(query) ||
-          item.category.toLowerCase().contains(query) ||
-          item.subCategory.toLowerCase().contains(query) ||
-          item.location.toLowerCase().contains(query);
+    return items
+        .where((item) {
+          final matchesCategory =
+              _selectedCategory == 'All' ||
+              item.category.toLowerCase() == _selectedCategory.toLowerCase() ||
+              item.subCategory.toLowerCase() == _selectedCategory.toLowerCase();
+          final matchesQuery =
+              query.isEmpty ||
+              item.name.toLowerCase().contains(query) ||
+              item.code.toLowerCase().contains(query) ||
+              item.category.toLowerCase().contains(query) ||
+              item.subCategory.toLowerCase().contains(query) ||
+              item.location.toLowerCase().contains(query);
 
-      return matchesCategory && matchesQuery;
-    }).toList(growable: false);
+          return matchesCategory && matchesQuery;
+        })
+        .toList(growable: false);
   }
 
   Future<void> _openAddItem() async {
     await Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (_) => InventoryItemFormScreen(inventoryService: _inventoryService),
+        builder: (_) =>
+            InventoryItemFormScreen(inventoryService: _inventoryService),
       ),
     );
   }
@@ -92,7 +94,9 @@ class _AdminInventoryDashboardScreenState
         final filteredItems = _applyFilters(items);
         final categories = <String>{
           'All',
-          ...items.map((item) => item.category).where((value) => value.isNotEmpty),
+          ...items
+              .map((item) => item.category)
+              .where((value) => value.isNotEmpty),
         }.toList(growable: false);
         return Stack(
           children: [
@@ -101,7 +105,12 @@ class _AdminInventoryDashboardScreenState
                 setState(() {});
               },
               child: ListView(
-                padding: EdgeInsets.fromLTRB(20, widget.embedded ? 16 : 12, 20, 100),
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  widget.embedded ? 16 : 12,
+                  20,
+                  100,
+                ),
                 children: [
                   if (!widget.embedded) const _WelcomePanel(),
                   const SizedBox(height: 18),
@@ -122,7 +131,8 @@ class _AdminInventoryDashboardScreenState
                         return ChoiceChip(
                           selected: selected,
                           label: Text(category),
-                          onSelected: (_) => setState(() => _selectedCategory = category),
+                          onSelected: (_) =>
+                              setState(() => _selectedCategory = category),
                           selectedColor: _utmMaroon,
                           backgroundColor: _cardGrey,
                           labelStyle: TextStyle(
@@ -268,10 +278,7 @@ class _WelcomePanel extends StatelessWidget {
 }
 
 class _SearchBar extends StatelessWidget {
-  const _SearchBar({
-    required this.controller,
-    required this.onChanged,
-  });
+  const _SearchBar({required this.controller, required this.onChanged});
 
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
@@ -298,10 +305,7 @@ class _SearchBar extends StatelessWidget {
 }
 
 class _InventoryListCard extends StatelessWidget {
-  const _InventoryListCard({
-    required this.item,
-    required this.onTap,
-  });
+  const _InventoryListCard({required this.item, required this.onTap});
 
   final InventoryItem item;
   final VoidCallback onTap;
@@ -311,10 +315,11 @@ class _InventoryListCard extends StatelessWidget {
     final statusColor = item.isOutOfStock
         ? const Color(0xFFB42318)
         : item.isLowStock
-            ? _gold
-            : const Color(0xFF1E7B34);
-    final statusTextColor =
-        item.isLowStock && !item.isOutOfStock ? Colors.black : Colors.white;
+        ? _gold
+        : const Color(0xFF1E7B34);
+    final statusTextColor = item.isLowStock && !item.isOutOfStock
+        ? Colors.black
+        : Colors.white;
 
     return InkWell(
       onTap: onTap,
@@ -373,6 +378,26 @@ class _InventoryListCard extends StatelessWidget {
                       fontSize: 12,
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    children: [
+                      _StockMiniLabel(label: 'Total', value: item.totalAmount),
+                      _StockMiniLabel(
+                        label: 'Available',
+                        value: item.availableAmount,
+                      ),
+                      _StockMiniLabel(
+                        label: 'Holding',
+                        value: item.holdingAmount,
+                      ),
+                      _StockMiniLabel(
+                        label: 'Rented',
+                        value: item.rentedAmount,
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -381,7 +406,10 @@ class _InventoryListCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 7,
+                  ),
                   decoration: BoxDecoration(
                     color: statusColor,
                     borderRadius: BorderRadius.circular(999),
@@ -394,18 +422,29 @@ class _InventoryListCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  '${item.quantity} unit${item.quantity == 1 ? '' : 's'}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
               ],
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _StockMiniLabel extends StatelessWidget {
+  const _StockMiniLabel({required this.label, required this.value});
+
+  final String label;
+  final int value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      '$label: $value',
+      style: const TextStyle(
+        color: Colors.white60,
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
       ),
     );
   }
@@ -455,7 +494,11 @@ class _InventoryErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 42),
+            const Icon(
+              Icons.error_outline_rounded,
+              color: Colors.redAccent,
+              size: 42,
+            ),
             const SizedBox(height: 12),
             const Text(
               'Unable to load inventory right now.',

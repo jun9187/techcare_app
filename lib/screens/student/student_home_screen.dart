@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'cart_screen.dart';
 import 'student_inventory_screen.dart';
+import 'student_requests_screen.dart';
 
 class StudentHomeScreen extends StatelessWidget {
   const StudentHomeScreen({
@@ -42,7 +43,12 @@ class StudentHomeScreen extends StatelessWidget {
             context,
             'My Requests',
             () {
-              Navigator.pushNamed(context, '/requests');
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const StudentRequestsScreen(),
+                ),
+              );
             },
           ),
           const SizedBox(height: 20),

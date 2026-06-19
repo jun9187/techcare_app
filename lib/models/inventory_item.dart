@@ -9,7 +9,10 @@ class InventoryItem {
     required this.subCategory,
     required this.description,
     required this.location,
-    required this.quantity,
+    required this.totalAmount,
+    required this.availableAmount,
+    required this.holdingAmount,
+    required this.rentedAmount,
     required this.imageUrl,
     required this.timestamp,
   });
@@ -21,12 +24,17 @@ class InventoryItem {
   final String subCategory;
   final String description;
   final String location;
-  final int quantity;
+  final int totalAmount;
+  final int availableAmount;
+  final int holdingAmount;
+  final int rentedAmount;
   final String imageUrl;
   final DateTime? timestamp;
 
-  bool get isLowStock => quantity <= 3;
-  bool get isOutOfStock => quantity <= 0;
+  int get quantity => availableAmount;
+
+  bool get isLowStock => availableAmount <= 3;
+  bool get isOutOfStock => availableAmount <= 0;
 
   String get statusLabel {
     if (isOutOfStock) return 'Out of Stock';
@@ -34,20 +42,46 @@ class InventoryItem {
     return 'Available';
   }
 
-  factory InventoryItem.fromDocument(DocumentSnapshot<Map<String, dynamic>> doc) {
-    final data = doc.data() ?? <String, dynamic>{};
+  factory InventoryItem.fromDocument(
+    DocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
+    return InventoryItem.fromData(
+      id: doc.id,
+      data: doc.data() ?? <String, dynamic>{},
+    );
+  }
+
+  factory InventoryItem.fromData({
+    required String id,
+    required Map<String, dynamic> data,
+  }) {
     final timestampValue = data['timestamp'];
+    final legacyQuantity = _readInt(data, ['Quantity', 'quantity']);
+    final totalAmount =
+        _readNullableInt(data, ['totalAmount']) ?? legacyQuantity;
+    final holdingAmount = _readNullableInt(data, ['holdingAmount']) ?? 0;
+    final rentedAmount = _readNullableInt(data, ['rentedAmount']) ?? 0;
+    final computedAvailable = totalAmount - holdingAmount - rentedAmount;
+    final availableAmount =
+        _readNullableInt(data, ['availableAmount']) ??
+        computedAvailable.clamp(0, totalAmount).toInt();
 
     return InventoryItem(
-      id: doc.id,
-      code: _readString(data, ['code']) ?? doc.id,
+      id: id,
+      code: _readString(data, ['code']) ?? id,
       name: _readString(data, ['Name', 'name']) ?? 'Unnamed Item',
       category: _readString(data, ['Category', 'category']) ?? 'Uncategorized',
-      subCategory: _readString(data, ['Sub-category', 'subCategory', 'SubCategory']) ?? '',
+      subCategory:
+          _readString(data, ['Sub-category', 'subCategory', 'SubCategory']) ??
+          '',
       description:
-          _readString(data, ['Description', 'description']) ?? 'No description provided.',
+          _readString(data, ['Description', 'description']) ??
+          'No description provided.',
       location: _readString(data, ['Location', 'location']) ?? 'Unknown',
-      quantity: _readInt(data, ['Quantity', 'quantity']),
+      totalAmount: totalAmount,
+      availableAmount: availableAmount,
+      holdingAmount: holdingAmount,
+      rentedAmount: rentedAmount,
       imageUrl: _readString(data, ['image', 'imageUrl']) ?? '',
       timestamp: timestampValue is Timestamp ? timestampValue.toDate() : null,
     );
@@ -61,7 +95,11 @@ class InventoryItem {
       'Sub-category': subCategory,
       'Description': description,
       'Location': location,
-      'Quantity': quantity,
+      'totalAmount': totalAmount,
+      'availableAmount': availableAmount,
+      'holdingAmount': holdingAmount,
+      'rentedAmount': rentedAmount,
+      'Quantity': totalAmount,
       'image': imageUrl,
       'timestamp': FieldValue.serverTimestamp(),
     };
@@ -74,7 +112,10 @@ class InventoryItem {
     String? subCategory,
     String? description,
     String? location,
-    int? quantity,
+    int? totalAmount,
+    int? availableAmount,
+    int? holdingAmount,
+    int? rentedAmount,
     String? imageUrl,
     DateTime? timestamp,
   }) {
@@ -86,7 +127,10 @@ class InventoryItem {
       subCategory: subCategory ?? this.subCategory,
       description: description ?? this.description,
       location: location ?? this.location,
-      quantity: quantity ?? this.quantity,
+      totalAmount: totalAmount ?? this.totalAmount,
+      availableAmount: availableAmount ?? this.availableAmount,
+      holdingAmount: holdingAmount ?? this.holdingAmount,
+      rentedAmount: rentedAmount ?? this.rentedAmount,
       imageUrl: imageUrl ?? this.imageUrl,
       timestamp: timestamp ?? this.timestamp,
     );
@@ -103,6 +147,10 @@ class InventoryItem {
   }
 
   static int _readInt(Map<String, dynamic> data, List<String> keys) {
+    return _readNullableInt(data, keys) ?? 0;
+  }
+
+  static int? _readNullableInt(Map<String, dynamic> data, List<String> keys) {
     for (final key in keys) {
       final value = data[key];
       if (value is int) return value;
@@ -114,6 +162,6 @@ class InventoryItem {
         if (parsedDouble != null) return parsedDouble.round();
       }
     }
-    return 0;
+    return null;
   }
 }
