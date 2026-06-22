@@ -69,7 +69,7 @@ class InventoryItem {
     final availableAmount =
         _readNullableInt(data, ['availableAmount']) ??
         computedAvailable.clamp(0, totalAmount).toInt();
-    
+
     var amountType = _readString(data, ['amountType', 'type']) ?? 'unit';
     if (amountType == 'rental') {
       amountType = 'unit';
@@ -98,22 +98,29 @@ class InventoryItem {
   }
 
   Map<String, dynamic> toFirestore() {
-    return {
+    final data = <String, dynamic>{
       'code': code,
       'Name': name,
       'Category': category,
       'Sub-category': subCategory,
       'Description': description,
       'Location': location,
-      'totalAmount': totalAmount,
-      'availableAmount': availableAmount,
-      'holdingAmount': holdingAmount,
-      'rentedAmount': rentedAmount,
-      'Quantity': totalAmount,
       'image': imageUrl,
       'timestamp': FieldValue.serverTimestamp(),
       'amountType': amountType,
     };
+
+    if (!isConsumable) {
+      data.addAll({
+        'totalAmount': totalAmount,
+        'availableAmount': availableAmount,
+        'holdingAmount': holdingAmount,
+        'rentedAmount': rentedAmount,
+        'Quantity': totalAmount,
+      });
+    }
+
+    return data;
   }
 
   InventoryItem copyWith({

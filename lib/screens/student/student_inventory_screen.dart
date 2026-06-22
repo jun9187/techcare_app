@@ -200,7 +200,7 @@ class _SearchBar extends StatelessWidget {
         controller: controller,
         onChanged: onChanged,
         decoration: const InputDecoration(
-          hintText: 'Search by item name, code, category, or location',
+          hintText: 'Search by item name or category',
           prefixIcon: Icon(Icons.search_rounded),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(vertical: 16),
@@ -225,7 +225,8 @@ class _InventoryListCard extends StatelessWidget {
         : item.isLowStock
         ? _gold
         : const Color(0xFF1E7B34);
-    final statusTextColor = (item.isLowStock && !item.isOutOfStock && !item.isConsumable)
+    final statusTextColor =
+        (item.isLowStock && !item.isOutOfStock && !item.isConsumable)
         ? Colors.black
         : Colors.white;
 
@@ -276,51 +277,49 @@ class _InventoryListCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     '${item.category}${item.subCategory.isNotEmpty ? ' • ${item.subCategory}' : ''}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: Colors.white70),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Code: ${item.code}   Location: ${item.location}',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.58),
-                      fontSize: 12,
-                    ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: statusColor,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          item.statusLabel,
+                          style: TextStyle(
+                            color: statusTextColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      if (!item.isConsumable) ...[
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            '${item.availableAmount} available',
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white60,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 7,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    item.statusLabel,
-                    style: TextStyle(
-                      color: statusTextColor,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                if (!item.isConsumable) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    'Available: ${item.availableAmount}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ],
             ),
           ],
         ),

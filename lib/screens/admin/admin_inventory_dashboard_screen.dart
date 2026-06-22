@@ -8,7 +8,6 @@ import 'inventory_item_form_screen.dart';
 const Color _backgroundDark = Color(0xFF0F0F0F);
 const Color _cardGrey = Color(0xFF1B1B1B);
 const Color _utmMaroon = Color(0xFF800000);
-const Color _gold = Color(0xFFFFD700);
 
 class AdminInventoryDashboardScreen extends StatefulWidget {
   const AdminInventoryDashboardScreen({super.key, this.embedded = false});
@@ -294,7 +293,7 @@ class _SearchBar extends StatelessWidget {
         controller: controller,
         onChanged: onChanged,
         decoration: const InputDecoration(
-          hintText: 'Search by item name, code, category, or location',
+          hintText: 'Search by item name or category',
           prefixIcon: Icon(Icons.search_rounded),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(vertical: 16),
@@ -312,17 +311,6 @@ class _InventoryListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = item.isConsumable
-        ? const Color(0xFF2563EB)
-        : item.isOutOfStock
-        ? const Color(0xFFB42318)
-        : item.isLowStock
-        ? _gold
-        : const Color(0xFF1E7B34);
-    final statusTextColor = (item.isLowStock && !item.isOutOfStock && !item.isConsumable)
-        ? Colors.black
-        : Colors.white;
-
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(22),
@@ -372,83 +360,22 @@ class _InventoryListCard extends StatelessWidget {
                     '${item.category}${item.subCategory.isNotEmpty ? ' • ${item.subCategory}' : ''}',
                     style: const TextStyle(color: Colors.white70),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Code: ${item.code}   Location: ${item.location}',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.58),
-                      fontSize: 12,
-                    ),
-                  ),
                   if (!item.isConsumable) ...[
                     const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      children: [
-                        _StockMiniLabel(label: 'Total', value: item.totalAmount),
-                        _StockMiniLabel(
-                          label: 'Available',
-                          value: item.availableAmount,
-                        ),
-                        _StockMiniLabel(
-                          label: 'Holding',
-                          value: item.holdingAmount,
-                        ),
-                        _StockMiniLabel(
-                          label: 'Rented',
-                          value: item.rentedAmount,
-                        ),
-                      ],
+                    Text(
+                      '${item.availableAmount} of ${item.totalAmount} available',
+                      style: const TextStyle(
+                        color: Colors.white60,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ],
               ),
             ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 7,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    item.statusLabel,
-                    style: TextStyle(
-                      color: statusTextColor,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _StockMiniLabel extends StatelessWidget {
-  const _StockMiniLabel({required this.label, required this.value});
-
-  final String label;
-  final int value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      '$label: $value',
-      style: const TextStyle(
-        color: Colors.white60,
-        fontSize: 11,
-        fontWeight: FontWeight.w600,
       ),
     );
   }

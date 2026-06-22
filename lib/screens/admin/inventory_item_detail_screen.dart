@@ -37,7 +37,8 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
   bool _isUpdatingQuantity = false;
   int _cartQuantity = 1;
 
-  bool get _isCartQuantityAtLimit => !_item.isConsumable && _cartQuantity >= _item.availableAmount;
+  bool get _isCartQuantityAtLimit =>
+      !_item.isConsumable && _cartQuantity >= _item.availableAmount;
 
   bool get _hasPendingQuantityChange {
     final parsed = int.tryParse(_quantityController.text.trim());
@@ -49,7 +50,9 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
   void initState() {
     super.initState();
     _item = widget.item;
-    _cartQuantity = _item.isConsumable ? 1 : (_item.availableAmount > 0 ? 1 : 0);
+    _cartQuantity = _item.isConsumable
+        ? 1
+        : (_item.availableAmount > 0 ? 1 : 0);
     _quantityController = TextEditingController(text: '${_item.totalAmount}');
     _quantityController.addListener(_handleQuantityDraftChanged);
     _quantityFocusNode = FocusNode();
@@ -216,8 +219,7 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
                     _InfoPill(text: _item.category),
                     if (_item.subCategory.isNotEmpty)
                       _InfoPill(text: _item.subCategory),
-                    if (_item.isConsumable)
-                      const _InfoPill(text: 'Consumable'),
+                    if (_item.isConsumable) const _InfoPill(text: 'Consumable'),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -231,7 +233,10 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
                       label: 'Available',
                       value: '${_item.availableAmount}',
                     ),
-                    _FieldRow(label: 'Holding', value: '${_item.holdingAmount}'),
+                    _FieldRow(
+                      label: 'Holding',
+                      value: '${_item.holdingAmount}',
+                    ),
                     _FieldRow(label: 'Rented', value: '${_item.rentedAmount}'),
                   ] else ...[
                     _FieldRow(
@@ -240,7 +245,7 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
                     ),
                   ],
                 ] else ...[
-                  const _FieldRow(label: 'Status', value: 'Consumable (No quantities tracked)'),
+                  const _FieldRow(label: 'Amount', value: 'Consumable'),
                 ],
                 const SizedBox(height: 14),
                 const Text(
@@ -294,7 +299,8 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
                     ),
                     const SizedBox(width: 12),
                     FilledButton(
-                      onPressed: _isUpdatingQuantity || !_hasPendingQuantityChange
+                      onPressed:
+                          _isUpdatingQuantity || !_hasPendingQuantityChange
                           ? null
                           : _submitQuantity,
                       style: FilledButton.styleFrom(
@@ -358,7 +364,9 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
                           image: widget.item.imageUrl,
                           code: widget.item.code,
                           quantity: _cartQuantity,
-                          maxQuantity: _item.isConsumable ? 9999 : _item.availableAmount,
+                          maxQuantity: _item.isConsumable
+                              ? 9999
+                              : _item.availableAmount,
                           isConsumable: _item.isConsumable,
                         ),
                       );
@@ -366,7 +374,8 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            (!_item.isConsumable && _cartQuantity >= _item.availableAmount)
+                            (!_item.isConsumable &&
+                                    _cartQuantity >= _item.availableAmount)
                                 ? 'Added to cart up to available stock'
                                 : 'Added to cart',
                           ),
