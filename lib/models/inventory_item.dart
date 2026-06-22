@@ -15,6 +15,7 @@ class InventoryItem {
     required this.rentedAmount,
     required this.imageUrl,
     required this.timestamp,
+    this.type = 'rental',
   });
 
   final String id;
@@ -30,13 +31,16 @@ class InventoryItem {
   final int rentedAmount;
   final String imageUrl;
   final DateTime? timestamp;
+  final String type;
 
   int get quantity => availableAmount;
 
-  bool get isLowStock => availableAmount <= 3;
-  bool get isOutOfStock => availableAmount <= 0;
+  bool get isConsumable => type == 'consumable';
+  bool get isLowStock => !isConsumable && availableAmount <= 3;
+  bool get isOutOfStock => !isConsumable && availableAmount <= 0;
 
   String get statusLabel {
+    if (isConsumable) return 'Consumable';
     if (isOutOfStock) return 'Out of Stock';
     if (isLowStock) return 'Low Stock';
     return 'Available';
@@ -65,6 +69,7 @@ class InventoryItem {
     final availableAmount =
         _readNullableInt(data, ['availableAmount']) ??
         computedAvailable.clamp(0, totalAmount).toInt();
+    final type = _readString(data, ['type']) ?? 'rental';
 
     return InventoryItem(
       id: id,
@@ -84,6 +89,7 @@ class InventoryItem {
       rentedAmount: rentedAmount,
       imageUrl: _readString(data, ['image', 'imageUrl']) ?? '',
       timestamp: timestampValue is Timestamp ? timestampValue.toDate() : null,
+      type: type,
     );
   }
 
@@ -102,6 +108,7 @@ class InventoryItem {
       'Quantity': totalAmount,
       'image': imageUrl,
       'timestamp': FieldValue.serverTimestamp(),
+      'type': type,
     };
   }
 
@@ -118,6 +125,7 @@ class InventoryItem {
     int? rentedAmount,
     String? imageUrl,
     DateTime? timestamp,
+    String? type,
   }) {
     return InventoryItem(
       id: id,
@@ -133,6 +141,7 @@ class InventoryItem {
       rentedAmount: rentedAmount ?? this.rentedAmount,
       imageUrl: imageUrl ?? this.imageUrl,
       timestamp: timestamp ?? this.timestamp,
+      type: type ?? this.type,
     );
   }
 

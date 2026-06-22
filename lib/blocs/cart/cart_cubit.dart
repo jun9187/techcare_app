@@ -10,11 +10,13 @@ class CartCubit extends Cubit<List<CartItem>> {
 
     if (existingIndex != -1) {
       final existingItem = nextItems[existingIndex];
+      final maxQty = existingItem.isConsumable ? 9999 : existingItem.maxQuantity;
       existingItem.quantity =
-          (existingItem.quantity + item.quantity).clamp(1, existingItem.maxQuantity);
+          (existingItem.quantity + item.quantity).clamp(1, maxQty);
       emit(nextItems);
     } else {
-      item.quantity = item.quantity.clamp(1, item.maxQuantity);
+      final maxQty = item.isConsumable ? 9999 : item.maxQuantity;
+      item.quantity = item.quantity.clamp(1, maxQty);
       emit([...nextItems, item]);
     }
   }
@@ -28,7 +30,8 @@ class CartCubit extends Cubit<List<CartItem>> {
     if (index != -1) {
       final nextItems = List<CartItem>.from(state);
       final item = nextItems[index];
-      if (item.quantity >= item.maxQuantity) return;
+      final maxQty = item.isConsumable ? 9999 : item.maxQuantity;
+      if (item.quantity >= maxQty) return;
       item.quantity++;
       emit(nextItems);
     }

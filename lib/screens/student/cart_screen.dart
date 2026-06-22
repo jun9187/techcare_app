@@ -88,7 +88,7 @@ class _CartScreenState extends State<CartScreen> {
                       isBusy: _isSubmitting,
                       onDecrease: () =>
                           context.read<CartCubit>().decreaseQty(item.id),
-                      onIncrease: item.quantity >= item.maxQuantity
+                      onIncrease: (item.isConsumable ? item.quantity >= 9999 : item.quantity >= item.maxQuantity)
                           ? null
                           : () =>
                                 context.read<CartCubit>().increaseQty(item.id),
@@ -241,11 +241,13 @@ class _CartItemCard extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'Available: ${item.maxQuantity}',
-                  style: const TextStyle(color: Colors.white54, fontSize: 12),
-                ),
+                if (!item.isConsumable) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Available: ${item.maxQuantity}',
+                    style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  ),
+                ],
                 const SizedBox(height: 6),
                 Row(
                   mainAxisSize: MainAxisSize.min,

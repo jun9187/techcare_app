@@ -218,12 +218,14 @@ class _InventoryListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = item.isOutOfStock
+    final statusColor = item.isConsumable
+        ? const Color(0xFF2563EB)
+        : item.isOutOfStock
         ? const Color(0xFFB42318)
         : item.isLowStock
         ? _gold
         : const Color(0xFF1E7B34);
-    final statusTextColor = item.isLowStock && !item.isOutOfStock
+    final statusTextColor = (item.isLowStock && !item.isOutOfStock && !item.isConsumable)
         ? Colors.black
         : Colors.white;
 
@@ -308,14 +310,16 @@ class _InventoryListCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  'Available: ${item.availableAmount}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
+                if (!item.isConsumable) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    'Available: ${item.availableAmount}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ],

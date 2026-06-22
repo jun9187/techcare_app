@@ -312,12 +312,14 @@ class _InventoryListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = item.isOutOfStock
+    final statusColor = item.isConsumable
+        ? const Color(0xFF2563EB)
+        : item.isOutOfStock
         ? const Color(0xFFB42318)
         : item.isLowStock
         ? _gold
         : const Color(0xFF1E7B34);
-    final statusTextColor = item.isLowStock && !item.isOutOfStock
+    final statusTextColor = (item.isLowStock && !item.isOutOfStock && !item.isConsumable)
         ? Colors.black
         : Colors.white;
 
@@ -378,26 +380,28 @@ class _InventoryListCard extends StatelessWidget {
                       fontSize: 12,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 6,
-                    children: [
-                      _StockMiniLabel(label: 'Total', value: item.totalAmount),
-                      _StockMiniLabel(
-                        label: 'Available',
-                        value: item.availableAmount,
-                      ),
-                      _StockMiniLabel(
-                        label: 'Holding',
-                        value: item.holdingAmount,
-                      ),
-                      _StockMiniLabel(
-                        label: 'Rented',
-                        value: item.rentedAmount,
-                      ),
-                    ],
-                  ),
+                  if (!item.isConsumable) ...[
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        _StockMiniLabel(label: 'Total', value: item.totalAmount),
+                        _StockMiniLabel(
+                          label: 'Available',
+                          value: item.availableAmount,
+                        ),
+                        _StockMiniLabel(
+                          label: 'Holding',
+                          value: item.holdingAmount,
+                        ),
+                        _StockMiniLabel(
+                          label: 'Rented',
+                          value: item.rentedAmount,
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),

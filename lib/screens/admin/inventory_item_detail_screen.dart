@@ -37,7 +37,7 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
   bool _isUpdatingQuantity = false;
   int _cartQuantity = 1;
 
-  bool get _isCartQuantityAtLimit => _cartQuantity >= _item.availableAmount;
+  bool get _isCartQuantityAtLimit => !_item.isConsumable && _cartQuantity >= _item.availableAmount;
 
   bool get _hasPendingQuantityChange {
     final parsed = int.tryParse(_quantityController.text.trim());
@@ -49,7 +49,7 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
   void initState() {
     super.initState();
     _item = widget.item;
-    _cartQuantity = _item.availableAmount > 0 ? 1 : 0;
+    _cartQuantity = _item.isConsumable ? 1 : (_item.availableAmount > 0 ? 1 : 0);
     _quantityController = TextEditingController(text: '${_item.totalAmount}');
     _quantityController.addListener(_handleQuantityDraftChanged);
     _quantityFocusNode = FocusNode();
@@ -216,25 +216,31 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
                     _InfoPill(text: _item.category),
                     if (_item.subCategory.isNotEmpty)
                       _InfoPill(text: _item.subCategory),
+                    if (_item.isConsumable)
+                      const _InfoPill(text: 'Consumable'),
                   ],
                 ),
                 const SizedBox(height: 20),
                 _FieldRow(label: 'Code', value: _item.code),
                 _FieldRow(label: 'Name', value: _item.name),
                 _FieldRow(label: 'Location', value: _item.location),
-                if (widget.isAdmin) ...[
-                  _FieldRow(label: 'Total', value: '${_item.totalAmount}'),
-                  _FieldRow(
-                    label: 'Available',
-                    value: '${_item.availableAmount}',
-                  ),
-                  _FieldRow(label: 'Holding', value: '${_item.holdingAmount}'),
-                  _FieldRow(label: 'Rented', value: '${_item.rentedAmount}'),
+                if (!_item.isConsumable) ...[
+                  if (widget.isAdmin) ...[
+                    _FieldRow(label: 'Total', value: '${_item.totalAmount}'),
+                    _FieldRow(
+                      label: 'Available',
+                      value: '${_item.availableAmount}',
+                    ),
+                    _FieldRow(label: 'Holding', value: '${_item.holdingAmount}'),
+                    _FieldRow(label: 'Rented', value: '${_item.rentedAmount}'),
+                  ] else ...[
+                    _FieldRow(
+                      label: 'Available',
+                      value: '${_item.availableAmount}',
+                    ),
+                  ],
                 ] else ...[
-                  _FieldRow(
-                    label: 'Available',
-                    value: '${_item.availableAmount}',
-                  ),
+                  const _FieldRow(label: 'Status', value: 'Consumable (No quantities tracked)'),
                 ],
                 const SizedBox(height: 14),
                 const Text(
@@ -254,61 +260,62 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
           ),
           const SizedBox(height: 18),
           if (widget.isAdmin) ...[
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: _cardGrey,
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Row(
-                children: [
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Total Stock',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 18,
+            if (!_item.isConsumable)
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: _cardGrey,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Row(
+                  children: [
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Total Stock',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 18,
+                            ),
                           ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    _QuantityStepper(
+                      controller: _quantityController,
+                      focusNode: _quantityFocusNode,
+                      isLoading: _isUpdatingQuantity,
+                      onDecrease: () => _adjustQuantity(-1),
+                      onIncrease: () => _adjustQuantity(1),
+                    ),
+                    const SizedBox(width: 12),
+                    FilledButton(
+                      onPressed: _isUpdatingQuantity || !_hasPendingQuantityChange
+                          ? null
+                          : _submitQuantity,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: _utmMaroon,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 18,
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  _QuantityStepper(
-                    controller: _quantityController,
-                    focusNode: _quantityFocusNode,
-                    isLoading: _isUpdatingQuantity,
-                    onDecrease: () => _adjustQuantity(-1),
-                    onIncrease: () => _adjustQuantity(1),
-                  ),
-                  const SizedBox(width: 12),
-                  FilledButton(
-                    onPressed: _isUpdatingQuantity || !_hasPendingQuantityChange
-                        ? null
-                        : _submitQuantity,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: _utmMaroon,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 18,
-                        vertical: 18,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
+                      child: const Text(
+                        'Save',
+                        style: TextStyle(fontWeight: FontWeight.w700),
                       ),
                     ),
-                    child: const Text(
-                      'Save',
-                      style: TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
           ] else ...[
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -341,7 +348,7 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
                 backgroundColor: Colors.red.shade900,
                 minimumSize: const Size(double.infinity, 50),
               ),
-              onPressed: _item.availableAmount <= 0
+              onPressed: (!_item.isConsumable && _item.availableAmount <= 0)
                   ? null
                   : () {
                       context.read<CartCubit>().addItem(
@@ -351,14 +358,15 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
                           image: widget.item.imageUrl,
                           code: widget.item.code,
                           quantity: _cartQuantity,
-                          maxQuantity: _item.availableAmount,
+                          maxQuantity: _item.isConsumable ? 9999 : _item.availableAmount,
+                          isConsumable: _item.isConsumable,
                         ),
                       );
 
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            _cartQuantity >= _item.availableAmount
+                            (!_item.isConsumable && _cartQuantity >= _item.availableAmount)
                                 ? 'Added to cart up to available stock'
                                 : 'Added to cart',
                           ),
