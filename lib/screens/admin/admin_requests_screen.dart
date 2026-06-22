@@ -17,15 +17,77 @@ class AdminRequestsScreen extends StatefulWidget {
 
 class _AdminRequestsScreenState extends State<AdminRequestsScreen> {
   final RentalRequestService _requestService = RentalRequestService();
+  final TextEditingController _searchController = TextEditingController();
   RentalRequestStatus? _selectedStatus;
+  String _searchQuery = '';
+  DateTime? _selectedDate;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   List<RentalRequest> _filteredRequests(List<RentalRequest> requests) {
-    final selected = _selectedStatus;
-    if (selected == null) return requests;
-    return requests
-        .where((request) => request.status == selected)
-        .toList(growable: false);
+    final selectedStatus = _selectedStatus;
+    final query = _searchQuery.trim().toLowerCase();
+    final selectedDate = _selectedDate;
+
+    return requests.where((request) {
+      if (selectedStatus != null && request.status != selectedStatus) {
+        return false;
+      }
+
+      if (query.isNotEmpty) {
+        final haystack = [
+          request.requesterName,
+          request.matricNumber,
+          request.requesterEmail,
+          request.referenceId,
+        ].join(' ').toLowerCase();
+        if (!haystack.contains(query)) return false;
+      }
+
+      if (selectedDate != null) {
+        final submitted = request.submittedAt?.toLocal();
+        if (submitted == null) return false;
+        if (submitted.year != selectedDate.year ||
+            submitted.month != selectedDate.month ||
+            submitted.day != selectedDate.day) {
+          return false;
+        }
+      }
+
+      return true;
+    }).toList(growable: false);
   }
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? now,
+      firstDate: DateTime(now.year - 5),
+      lastDate: DateTime(now.year + 1),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: _utmMaroon,
+              surface: _cardGrey,
+              onSurface: Colors.white,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() => _selectedDate = picked);
+    }
+  }
+
+  void _clearDate() => setState(() => _selectedDate = null);
 
   void _openRequest(RentalRequest request) {
     Navigator.push(
@@ -62,6 +124,15 @@ class _AdminRequestsScreenState extends State<AdminRequestsScreen> {
           return ListView(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
             children: [
+              _SearchField(
+                controller: _searchController,
+                onChanged: (value) => setState(() => _searchQuery = value),
+                onClear: () {
+                  _searchController.clear();
+                  setState(() => _searchQuery = '');
+                },
+              ),
+              const SizedBox(height: 12),
               SizedBox(
                 height: 40,
                 child: ListView(
@@ -103,6 +174,12 @@ class _AdminRequestsScreenState extends State<AdminRequestsScreen> {
                   ],
                 ),
               ),
+              const SizedBox(height: 12),
+              _DateFilterRow(
+                selectedDate: _selectedDate,
+                onPick: _pickDate,
+                onClear: _clearDate,
+              ),
               const SizedBox(height: 18),
               Row(
                 children: [
@@ -142,6 +219,126 @@ class _AdminRequestsScreenState extends State<AdminRequestsScreen> {
           );
         },
       ),
+    );
+  }
+}
+
+class _SearchField extends StatelessWidget {
+  const _SearchField({
+    required this.controller,
+    required this.onChanged,
+    required this.onClear,
+  });
+
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      onChanged: onChanged,
+      style: const TextStyle(color: Colors.white),
+      textInputAction: TextInputAction.search,
+      decoration: InputDecoration(
+        hintText: 'Search by name, matric no. or reference',
+        hintStyle: const TextStyle(color: Colors.white38),
+        prefixIcon: const Icon(Icons.search_rounded, color: Colors.white54),
+        suffixIcon: controller.text.isEmpty
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.close_rounded, color: Colors.white54),
+                onPressed: onClear,
+              ),
+        filled: true,
+        fillColor: _cardGrey,
+        contentPadding: const EdgeInsets.symmetric(vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: _utmMaroon, width: 1.4),
+        ),
+      ),
+    );
+  }
+}
+
+class _DateFilterRow extends StatelessWidget {
+  const _DateFilterRow({
+    required this.selectedDate,
+    required this.onPick,
+    required this.onClear,
+  });
+
+  final DateTime? selectedDate;
+  final VoidCallback onPick;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final date = selectedDate;
+    final label = date == null
+        ? 'Filter by date'
+        : '${date.day.toString().padLeft(2, '0')}/'
+              '${date.month.toString().padLeft(2, '0')}/${date.year}';
+
+    return Row(
+      children: [
+        Expanded(
+          child: InkWell(
+            onTap: onPick,
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+              decoration: BoxDecoration(
+                color: _cardGrey,
+                borderRadius: BorderRadius.circular(16),
+                border: date == null
+                    ? null
+                    : Border.all(color: _utmMaroon, width: 1.2),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.calendar_today_rounded,
+                    color: Colors.white54,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: date == null ? Colors.white54 : Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        if (date != null) ...[
+          const SizedBox(width: 8),
+          IconButton(
+            onPressed: onClear,
+            icon: const Icon(Icons.close_rounded, color: Colors.white54),
+            style: IconButton.styleFrom(
+              backgroundColor: _cardGrey,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
@@ -194,6 +391,19 @@ class _RequestCard extends StatelessWidget {
                       fontSize: 16,
                     ),
                   ),
+                  if (request.matricNumber.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      request.matricNumber,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white60,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 5),
                   Text(
                     extraCount > 0 ? '$firstItem +$extraCount' : firstItem,
