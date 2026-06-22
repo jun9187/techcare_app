@@ -44,13 +44,15 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password reset email sent! Check your inbox.')),
+        const SnackBar(
+          content: Text('Password reset email sent! Check your inbox.'),
+        ),
       );
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $error')));
     }
   }
 
@@ -63,9 +65,9 @@ class _LoginScreenState extends State<LoginScreen> {
           if (state is Authenticated) {
             Navigator.pushReplacementNamed(context, '/home');
           } else if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           }
         },
         builder: (context, state) {
@@ -110,7 +112,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           title: 'Student',
                           icon: Icons.school_rounded,
                           selected: _selectedRole == 'student',
-                          onTap: () => setState(() => _selectedRole = 'student'),
+                          onTap: () =>
+                              setState(() => _selectedRole = 'student'),
                         ),
                       ),
                       const SizedBox(width: 14),
@@ -194,8 +197,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: isLoading
                           ? null
                           : () => context.read<AuthBloc>().add(
-                                GoogleLoginRequested(role: _selectedRole),
-                              ),
+                              GoogleLoginRequested(role: _selectedRole),
+                            ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -204,7 +207,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             height: 24,
                             width: 24,
                             errorBuilder: (context, error, stackTrace) =>
-                                const Icon(Icons.account_circle, color: Colors.blue),
+                                const Icon(
+                                  Icons.account_circle,
+                                  color: Colors.blue,
+                                ),
                           ),
                           const SizedBox(width: 12),
                           Flexible(
@@ -223,28 +229,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 28),
-                  Center(
-                    child: TextButton(
-                      onPressed: isLoading
-                          ? null
-                          : () => Navigator.pushNamed(context, '/register'),
-                      child: RichText(
-                        text: const TextSpan(
-                          text: "Don't have an account? ",
-                          style: TextStyle(color: Colors.white70),
-                          children: [
-                            TextSpan(
-                              text: 'Register as Student',
-                              style: TextStyle(
-                                color: goldHighlight,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -307,7 +291,9 @@ class _RoleCard extends StatelessWidget {
           color: selected ? utmMaroon : cardGrey,
           borderRadius: BorderRadius.circular(22),
           border: Border.all(
-            color: selected ? goldHighlight : Colors.white.withValues(alpha: 0.06),
+            color: selected
+                ? goldHighlight
+                : Colors.white.withValues(alpha: 0.06),
             width: selected ? 1.6 : 1,
           ),
           boxShadow: selected
@@ -322,7 +308,11 @@ class _RoleCard extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Icon(icon, color: selected ? goldHighlight : Colors.white70, size: 28),
+            Icon(
+              icon,
+              color: selected ? goldHighlight : Colors.white70,
+              size: 28,
+            ),
             const SizedBox(height: 12),
             Text(
               title,

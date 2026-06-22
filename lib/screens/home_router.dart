@@ -15,11 +15,7 @@ class HomeRouter extends StatelessWidget {
     final state = context.watch<AuthBloc>().state;
 
     if (state is AuthInitial || state is AuthLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (state is Authenticated && state.role == 'admin') {

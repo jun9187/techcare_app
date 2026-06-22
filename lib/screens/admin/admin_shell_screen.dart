@@ -6,6 +6,7 @@ import '../../blocs/auth/auth_event.dart';
 import '../profile_screen.dart';
 import 'admin_home_screen.dart';
 import 'admin_inventory_dashboard_screen.dart';
+import 'user_management/admin_user_management_screen.dart';
 import 'admin_requests_screen.dart';
 
 const Color _backgroundDark = Color(0xFF0F0F0F);
@@ -28,6 +29,7 @@ class _AdminShellScreenState extends State<AdminShellScreen> {
       onOpenRequests: () => setState(() => _currentIndex = 2),
     ),
     const AdminInventoryDashboardScreen(embedded: true),
+    const AdminUserManagementScreen(),
     const AdminRequestsScreen(),
     const ProfileScreen(showAppBar: false),
   ];
@@ -36,6 +38,7 @@ class _AdminShellScreenState extends State<AdminShellScreen> {
     'Admin Home',
     'Inventory',
     'Rental Requests',
+    'User Management',
     'Profile',
   ];
 
@@ -67,10 +70,7 @@ class _AdminShellScreenState extends State<AdminShellScreen> {
           ),
         ],
       ),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: NavigationBar(
         backgroundColor: _cardGrey,
         indicatorColor: _utmMaroon.withValues(alpha: 0.22),
@@ -91,6 +91,11 @@ class _AdminShellScreenState extends State<AdminShellScreen> {
             icon: Icon(Icons.assignment_outlined),
             selectedIcon: Icon(Icons.assignment_rounded),
             label: 'Requests',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.group_outlined),
+            selectedIcon: Icon(Icons.group_rounded),
+            label: 'Users',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline_rounded),
