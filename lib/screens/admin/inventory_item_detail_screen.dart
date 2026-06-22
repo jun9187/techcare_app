@@ -7,6 +7,7 @@ import '../../models/cart_item.dart';
 import '../../models/inventory_item.dart';
 import '../../services/inventory_service.dart';
 import '../student/cart_screen.dart';
+import 'admin_requests_screen.dart';
 import 'inventory_item_form_screen.dart';
 
 const Color _backgroundDark = Color(0xFF0F0F0F);
@@ -169,6 +170,13 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
     }
   }
 
+  void _viewRentalRequests() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => AdminItemRequestsPage(item: _item)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -265,6 +273,41 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
           ),
           const SizedBox(height: 18),
           if (widget.isAdmin) ...[
+            OutlinedButton.icon(
+              onPressed: _viewRentalRequests,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 52),
+                side: BorderSide(color: _utmMaroon.withValues(alpha: 0.8)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
+              ),
+              icon: const Icon(Icons.assignment_outlined),
+              label: const Text(
+                'View Rental Requests',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: _cardGrey,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Row(
+                children: [
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Total Stock',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 18,
             if (!_item.isConsumable)
               Container(
                 padding: const EdgeInsets.all(18),
