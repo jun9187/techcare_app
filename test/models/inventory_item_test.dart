@@ -34,4 +34,47 @@ void main() {
       expect(item.rentedAmount, 3);
     });
   });
+
+  group('InventoryItem Firestore serialization', () {
+    test('omits stock fields for consumable items', () {
+      final data = _item(amountType: 'consumable').toFirestore();
+
+      expect(data['amountType'], 'consumable');
+      expect(data, isNot(contains('totalAmount')));
+      expect(data, isNot(contains('availableAmount')));
+      expect(data, isNot(contains('holdingAmount')));
+      expect(data, isNot(contains('rentedAmount')));
+      expect(data, isNot(contains('Quantity')));
+    });
+
+    test('keeps all stock fields for unit items', () {
+      final data = _item(amountType: 'unit').toFirestore();
+
+      expect(data['amountType'], 'unit');
+      expect(data['totalAmount'], 10);
+      expect(data['availableAmount'], 6);
+      expect(data['holdingAmount'], 1);
+      expect(data['rentedAmount'], 3);
+      expect(data['Quantity'], 10);
+    });
+  });
+}
+
+InventoryItem _item({required String amountType}) {
+  return InventoryItem(
+    id: '',
+    code: 'ITEM001',
+    name: 'Test Item',
+    category: 'Test Category',
+    subCategory: 'Test Sub-category',
+    description: 'Test description',
+    location: 'Test location',
+    totalAmount: 10,
+    availableAmount: 6,
+    holdingAmount: 1,
+    rentedAmount: 3,
+    imageUrl: '',
+    timestamp: null,
+    amountType: amountType,
+  );
 }

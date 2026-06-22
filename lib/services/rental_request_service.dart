@@ -75,7 +75,14 @@ class RentalRequestService {
           throw Exception('${item.name} is no longer in inventory.');
         }
 
-        final stock = _readStock(itemDoc.data() ?? <String, dynamic>{});
+        final itemData = itemDoc.data() ?? <String, dynamic>{};
+        final amountType = _readString(itemData, ['amountType', 'type']) ?? 'unit';
+        final isConsumable = amountType == 'consumable';
+        if (isConsumable) {
+          continue;
+        }
+
+        final stock = _readStock(itemData);
         if (stock.availableAmount < item.quantity) {
           throw Exception('Not enough available stock for ${item.name}.');
         }
@@ -147,7 +154,14 @@ class RentalRequestService {
           throw Exception('${item.name} is no longer in inventory.');
         }
 
-        final stock = _readStock(itemDoc.data() ?? <String, dynamic>{});
+        final itemData = itemDoc.data() ?? <String, dynamic>{};
+        final amountType = _readString(itemData, ['amountType', 'type']) ?? 'unit';
+        final isConsumable = amountType == 'consumable';
+        if (isConsumable) {
+          continue;
+        }
+
+        final stock = _readStock(itemData);
         if (stock.holdingAmount < item.quantity) {
           throw Exception('Holding amount is too low for ${item.name}.');
         }
@@ -202,7 +216,14 @@ class RentalRequestService {
           throw Exception('${item.name} is no longer in inventory.');
         }
 
-        final stock = _readStock(itemDoc.data() ?? <String, dynamic>{});
+        final itemData = itemDoc.data() ?? <String, dynamic>{};
+        final amountType = _readString(itemData, ['amountType', 'type']) ?? 'unit';
+        final isConsumable = amountType == 'consumable';
+        if (isConsumable) {
+          continue;
+        }
+
+        final stock = _readStock(itemData);
         if (stock.holdingAmount < item.quantity) {
           throw Exception('Holding amount is too low for ${item.name}.');
         }
@@ -257,7 +278,14 @@ class RentalRequestService {
           throw Exception('${item.name} is no longer in inventory.');
         }
 
-        final stock = _readStock(itemDoc.data() ?? <String, dynamic>{});
+        final itemData = itemDoc.data() ?? <String, dynamic>{};
+        final amountType = _readString(itemData, ['amountType', 'type']) ?? 'unit';
+        final isConsumable = amountType == 'consumable';
+        if (isConsumable) {
+          continue;
+        }
+
+        final stock = _readStock(itemData);
         if (stock.rentedAmount < item.quantity) {
           throw Exception('Rented amount is too low for ${item.name}.');
         }
