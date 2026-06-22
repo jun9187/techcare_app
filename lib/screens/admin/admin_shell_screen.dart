@@ -27,6 +27,7 @@ class _AdminShellScreenState extends State<AdminShellScreen> {
     AdminHomeScreen(
       onOpenInventory: () => setState(() => _currentIndex = 1),
       onOpenRequests: () => setState(() => _currentIndex = 2),
+      onOpenUsers: () => setState(() => _currentIndex = 3),
     ),
     const AdminInventoryDashboardScreen(embedded: true),
     const AdminRequestsScreen(),
