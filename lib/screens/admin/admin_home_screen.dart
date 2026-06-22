@@ -9,17 +9,19 @@ class AdminHomeScreen extends StatelessWidget {
     super.key,
     required this.onOpenInventory,
     required this.onOpenRequests,
+    required this.onOpenUsers,
   });
 
   final VoidCallback onOpenInventory;
   final VoidCallback onOpenRequests;
+  final VoidCallback onOpenUsers;
 
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
       color: _backgroundDark,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+        padding: const EdgeInsets.fromLTRB(20, 18, 20, 32),
         children: [
           Container(
             padding: const EdgeInsets.all(22),
@@ -44,7 +46,7 @@ class AdminHomeScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'Inventory Admin',
+                  'TechCare Management',
                   style: TextStyle(
                     color: Colors.white70,
                     fontSize: 15,
@@ -58,15 +60,22 @@ class AdminHomeScreen extends StatelessWidget {
           _QuickActionCard(
             title: 'Inventory Management',
             icon: Icons.inventory_2_rounded,
-            buttonLabel: 'Open Inventory',
+            buttonLabel: 'View Inventory',
             onTap: onOpenInventory,
           ),
           const SizedBox(height: 12),
           _QuickActionCard(
             title: 'Rental Requests',
             icon: Icons.fact_check_outlined,
-            buttonLabel: 'Open Requests',
+            buttonLabel: 'View Requests',
             onTap: onOpenRequests,
+          ),
+          const SizedBox(height: 12),
+          _QuickActionCard(
+            title: 'User Management',
+            icon: Icons.manage_accounts_rounded,
+            buttonLabel: 'View Users',
+            onTap: onOpenUsers,
           ),
         ],
       ),

@@ -12,11 +12,24 @@ const Color _cardGrey = Color(0xFF1B1B1B);
 const Color _utmMaroon = Color(0xFF800000);
 
 class StudentRequestsScreen extends StatelessWidget {
-  const StudentRequestsScreen({super.key});
+  const StudentRequestsScreen({super.key, this.embedded = false});
+
+  final bool embedded;
 
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AuthBloc>().state;
+
+    final content = state is Authenticated
+        ? _StudentRequestsContent(uid: state.uid)
+        : const _MessageState(
+            icon: Icons.lock_outline_rounded,
+            message: 'Please login again.',
+          );
+
+    if (embedded) {
+      return ColoredBox(color: _backgroundDark, child: content);
+    }
 
     return Scaffold(
       backgroundColor: _backgroundDark,
@@ -24,12 +37,7 @@ class StudentRequestsScreen extends StatelessWidget {
         backgroundColor: _backgroundDark,
         title: const Text('My Requests'),
       ),
-      body: state is Authenticated
-          ? _StudentRequestsContent(uid: state.uid)
-          : const _MessageState(
-              icon: Icons.lock_outline_rounded,
-              message: 'Please login again.',
-            ),
+      body: content,
     );
   }
 }

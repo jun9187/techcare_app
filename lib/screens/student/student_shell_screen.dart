@@ -7,6 +7,7 @@ import '../profile_screen.dart';
 import 'student_home_screen.dart';
 import 'student_inventory_screen.dart';
 import 'cart_screen.dart';
+import 'student_requests_screen.dart';
 
 const Color _backgroundDark = Color(0xFF0F0F0F);
 const Color _cardGrey = Color(0xFF1B1B1B);
@@ -26,9 +27,11 @@ class _StudentShellScreenState extends State<StudentShellScreen> {
     StudentHomeScreen(
       embedded: true,
       onOpenInventory: () => setState(() => _currentIndex = 1),
-      onOpenCart: () => setState(() => _currentIndex = 2),
+      onOpenRequests: () => setState(() => _currentIndex = 2),
+      onOpenCart: () => setState(() => _currentIndex = 3),
     ),
     const StudentInventoryScreen(embedded: true),
+    const StudentRequestsScreen(embedded: true),
     const CartScreen(embedded: true),
     const ProfileScreen(showAppBar: false),
   ];
@@ -36,6 +39,7 @@ class _StudentShellScreenState extends State<StudentShellScreen> {
   static const _titles = [
     'Student Home',
     'Items',
+    'My Requests',
     'My Cart',
     'Profile',
   ];
@@ -68,10 +72,7 @@ class _StudentShellScreenState extends State<StudentShellScreen> {
           ),
         ],
       ),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: NavigationBar(
         backgroundColor: _cardGrey,
         indicatorColor: _utmMaroon.withValues(alpha: 0.22),
@@ -87,6 +88,11 @@ class _StudentShellScreenState extends State<StudentShellScreen> {
             icon: Icon(Icons.inventory_2_outlined),
             selectedIcon: Icon(Icons.inventory_2_rounded),
             label: 'Items',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.assignment_outlined),
+            selectedIcon: Icon(Icons.assignment_rounded),
+            label: 'Requests',
           ),
           NavigationDestination(
             icon: Icon(Icons.shopping_cart_outlined),
