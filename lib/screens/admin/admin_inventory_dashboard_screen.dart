@@ -378,6 +378,26 @@ class _InventoryListCard extends StatelessWidget {
                       fontSize: 12,
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    children: [
+                      _StockMiniLabel(label: 'Total', value: item.totalAmount),
+                      _StockMiniLabel(
+                        label: 'Available',
+                        value: item.availableAmount,
+                      ),
+                      _StockMiniLabel(
+                        label: 'Holding',
+                        value: item.holdingAmount,
+                      ),
+                      _StockMiniLabel(
+                        label: 'Rented',
+                        value: item.rentedAmount,
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -402,18 +422,29 @@ class _InventoryListCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  '${item.quantity} unit${item.quantity == 1 ? '' : 's'}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
               ],
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _StockMiniLabel extends StatelessWidget {
+  const _StockMiniLabel({required this.label, required this.value});
+
+  final String label;
+  final int value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      '$label: $value',
+      style: const TextStyle(
+        color: Colors.white60,
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
       ),
     );
   }

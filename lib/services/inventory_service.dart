@@ -6,13 +6,16 @@ import 'package:http/http.dart' as http;
 
 import '../models/inventory_item.dart';
 
-const String _cloudinaryCloudName = String.fromEnvironment('CLOUDINARY_CLOUD_NAME');
-const String _cloudinaryUploadPreset = String.fromEnvironment('CLOUDINARY_UPLOAD_PRESET');
+const String _cloudinaryCloudName = String.fromEnvironment(
+  'CLOUDINARY_CLOUD_NAME',
+);
+const String _cloudinaryUploadPreset = String.fromEnvironment(
+  'CLOUDINARY_UPLOAD_PRESET',
+);
 
 class InventoryService {
-  InventoryService({
-    FirebaseFirestore? firestore,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance;
+  InventoryService({FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseFirestore _firestore;
 
@@ -20,7 +23,10 @@ class InventoryService {
       _firestore.collection('inventory');
 
   Stream<List<InventoryItem>> watchInventory() {
-    return _inventoryRef.orderBy('Name').snapshots().map(
+    return _inventoryRef
+        .orderBy('Name')
+        .snapshots()
+        .map(
           (snapshot) => snapshot.docs
               .map(InventoryItem.fromDocument)
               .toList(growable: false),
@@ -28,11 +34,41 @@ class InventoryService {
   }
 
   Future<void> addItem(InventoryItem item) async {
+    _validateStock(item);
     await _inventoryRef.add(item.toFirestore());
   }
 
   Future<void> updateItem(InventoryItem item) async {
-    await _inventoryRef.doc(item.id).set(item.toFirestore(), SetOptions(merge: true));
+    _validateStock(item);
+    await _inventoryRef
+        .doc(item.id)
+        .set(item.toFirestore(), SetOptions(merge: true));
+  }
+
+  Future<InventoryItem> updateTotalAmount({
+    required InventoryItem item,
+    required int totalAmount,
+  }) async {
+    return _firestore.runTransaction((transaction) async {
+      final itemRef = _inventoryRef.doc(item.id);
+      final itemDoc = await transaction.get(itemRef);
+      final current = itemDoc.exists
+          ? InventoryItem.fromDocument(itemDoc)
+          : item;
+      final activeAmount = current.holdingAmount + current.rentedAmount;
+
+      if (totalAmount < activeAmount) {
+        throw Exception('Total cannot be less than holding and rented amount.');
+      }
+
+      final updated = current.copyWith(
+        totalAmount: totalAmount,
+        availableAmount: totalAmount - activeAmount,
+      );
+
+      transaction.set(itemRef, updated.toFirestore(), SetOptions(merge: true));
+      return updated;
+    });
   }
 
   Future<void> updateQuantity({
@@ -40,6 +76,10 @@ class InventoryService {
     required int quantity,
   }) async {
     await _inventoryRef.doc(itemId).set({
+      'totalAmount': quantity,
+      'availableAmount': quantity,
+      'holdingAmount': 0,
+      'rentedAmount': 0,
       'Quantity': quantity,
       'timestamp': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
@@ -78,7 +118,9 @@ class InventoryService {
         http.MultipartFile.fromBytes(
           'file',
           await imageFile.readAsBytes(),
-          filename: imageFile.name.isNotEmpty ? imageFile.name : '$publicId.$extension',
+          filename: imageFile.name.isNotEmpty
+              ? imageFile.name
+              : '$publicId.$extension',
         ),
       );
 
@@ -96,9 +138,22 @@ class InventoryService {
 
     final secureUrl = payload['secure_url']?.toString();
     if (secureUrl == null || secureUrl.isEmpty) {
-      throw Exception('Cloudinary upload succeeded but no image URL was returned.');
+      throw Exception(
+        'Cloudinary upload succeeded but no image URL was returned.',
+      );
     }
 
     return secureUrl;
+  }
+
+  void _validateStock(InventoryItem item) {
+    final activeAmount = item.holdingAmount + item.rentedAmount;
+    if (item.totalAmount < activeAmount) {
+      throw Exception('Total cannot be less than holding and rented amount.');
+    }
+
+    if (item.availableAmount != item.totalAmount - activeAmount) {
+      throw Exception('Available amount does not match the stock counters.');
+    }
   }
 }

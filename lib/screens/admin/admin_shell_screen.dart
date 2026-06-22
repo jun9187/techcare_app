@@ -6,8 +6,8 @@ import '../../blocs/auth/auth_event.dart';
 import '../profile_screen.dart';
 import 'admin_home_screen.dart';
 import 'admin_inventory_dashboard_screen.dart';
-import 'admin_requests_placeholder_screen.dart';
 import 'user_management/admin_user_management_screen.dart';
+import 'admin_requests_screen.dart';
 
 const Color _backgroundDark = Color(0xFF0F0F0F);
 const Color _cardGrey = Color(0xFF1B1B1B);
@@ -29,8 +29,8 @@ class _AdminShellScreenState extends State<AdminShellScreen> {
       onOpenRequests: () => setState(() => _currentIndex = 2),
     ),
     const AdminInventoryDashboardScreen(embedded: true),
-    const AdminRequestsPlaceholderScreen(),
     const AdminUserManagementScreen(),
+    const AdminRequestsScreen(),
     const ProfileScreen(showAppBar: false),
   ];
 
