@@ -9,6 +9,7 @@ import 'auth_state.dart';
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthService authService;
   late final StreamSubscription<User?> _authSubscription;
+  bool _isInteractiveLoginInProgress = false;
 
   AuthBloc(this.authService) : super(AuthInitial()) {
     on<AuthStatusChanged>((event, emit) {
@@ -22,6 +23,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<LoginRequested>((event, emit) async {
       emit(AuthLoading());
+      _isInteractiveLoginInProgress = true;
       try {
         final result = await authService.signInWithEmail(
           event.email,
@@ -31,6 +33,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(Authenticated(result.credential.user!.uid, result.role));
       } catch (e) {
         emit(AuthError(e.toString()));
+      } finally {
+        _isInteractiveLoginInProgress = false;
       }
     });
 
@@ -52,6 +56,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<GoogleLoginRequested>((event, emit) async {
       emit(AuthLoading());
+      _isInteractiveLoginInProgress = true;
       try {
         final result = await authService.signInWithGoogle(event.role);
         if (result != null) {
@@ -59,8 +64,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         } else {
           emit(Unauthenticated());
         }
+      } on AuthRoleException catch (e) {
+        emit(AuthError(e.message));
       } catch (e) {
-        emit(AuthError("Google Sign-In failed or cancelled."));
+        emit(AuthError('Google Sign-In failed. Please try again.'));
+      } finally {
+        _isInteractiveLoginInProgress = false;
       }
     });
 
@@ -70,13 +79,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     });
 
     _authSubscription = authService.user.listen((user) async {
+      if (_isInteractiveLoginInProgress) {
+        return;
+      }
+
       if (user == null) {
         add(AuthStatusChanged.unauthenticated());
         return;
       }
 
       try {
-        final role = await authService.getStoredRole(user);
+        final role = await authService.getActiveRole(user);
         add(AuthStatusChanged.authenticated(uid: user.uid, role: role));
       } catch (_) {
         add(AuthStatusChanged.unauthenticated());

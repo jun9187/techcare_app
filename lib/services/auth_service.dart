@@ -12,13 +12,68 @@ class AuthResult {
   AuthResult({required this.credential, required this.role});
 }
 
+class AuthRoleException implements Exception {
+  const AuthRoleException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
+class AuthRolePolicy {
+  const AuthRolePolicy._();
+
+  static String resolve({
+    required String storedRole,
+    required String selectedRole,
+  }) {
+    final accountRole = storedRole.trim().toLowerCase();
+    final requestedRole = selectedRole.trim().toLowerCase();
+
+    if (requestedRole != 'student' && requestedRole != 'admin') {
+      throw const AuthRoleException('Please select a valid role to continue.');
+    }
+
+    if (accountRole == 'admin') {
+      return requestedRole;
+    }
+
+    if (accountRole == 'student' && requestedRole == 'admin') {
+      throw const AuthRoleException(
+        'This student account does not have admin access. '
+        'Please select Student to continue.',
+      );
+    }
+
+    if (accountRole == requestedRole) {
+      return requestedRole;
+    }
+
+    throw AuthRoleException(
+      'This account is registered as $accountRole and cannot sign in as '
+      '$requestedRole.',
+    );
+  }
+}
+
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
+  String? _activeRole;
+  String? _activeRoleUid;
 
   Stream<User?> get user => _auth.authStateChanges();
+
+  Future<String> getActiveRole(User user) async {
+    if (_activeRoleUid == user.uid && _activeRole != null) {
+      return _activeRole!;
+    }
+
+    return getStoredRole(user);
+  }
 
   Future<String> getStoredRole(User user) async {
     final doc = await _firestore.collection('users').doc(user.uid).get();
@@ -45,12 +100,29 @@ class AuthService {
       password: password,
     );
 
-    final role = await _resolveUserRole(
-      user: credential.user,
-      selectedRole: selectedRole,
-    );
+    try {
+      final role = await _resolveUserRole(
+        user: credential.user,
+        selectedRole: selectedRole,
+      );
+      _rememberActiveRole(credential.user, role);
 
-    return AuthResult(credential: credential, role: role);
+      return AuthResult(credential: credential, role: role);
+    } on AuthRoleException {
+      try {
+        await _auth.signOut();
+      } finally {
+        _clearActiveRole();
+      }
+      rethrow;
+    } catch (_) {
+      try {
+        await _auth.signOut();
+      } finally {
+        _clearActiveRole();
+      }
+      rethrow;
+    }
   }
 
   Future<AuthResult> registerWithEmail({
@@ -74,6 +146,7 @@ class AuthService {
       'role': role,
       'createdAt': FieldValue.serverTimestamp(),
     });
+    _rememberActiveRole(result.user, role);
 
     return AuthResult(credential: result, role: role);
   }
@@ -111,17 +184,26 @@ class AuthService {
         user: result.user,
         selectedRole: selectedRole,
       );
+      _rememberActiveRole(result.user, role);
 
       return AuthResult(credential: result, role: role);
+    } on AuthRoleException {
+      await _signOutAfterFailedGoogleLogin();
+      rethrow;
     } catch (e) {
+      await _signOutAfterFailedGoogleLogin();
       debugPrint("TechCare Google Auth Error: $e");
-      return null;
+      rethrow;
     }
   }
 
   Future<void> signOut() async {
-    await _googleSignIn.signOut();
-    await _auth.signOut();
+    try {
+      await _googleSignIn.signOut();
+      await _auth.signOut();
+    } finally {
+      _clearActiveRole();
+    }
   }
 
   Future<void> createUserAsAdmin({
@@ -174,6 +256,17 @@ class AuthService {
         );
   }
 
+  Stream<Map<String, dynamic>?> streamUser(String uid) {
+    return _firestore.collection('users').doc(uid).snapshots().map((doc) {
+      final data = doc.data();
+      if (!doc.exists || data == null) {
+        return null;
+      }
+
+      return {'id': doc.id, ...data};
+    });
+  }
+
   Future<String> _resolveUserRole({
     required User? user,
     required String selectedRole,
@@ -183,14 +276,33 @@ class AuthService {
     }
 
     final storedRole = await getStoredRole(user);
-    final normalizedRole = selectedRole.trim().toLowerCase();
+    return AuthRolePolicy.resolve(
+      storedRole: storedRole,
+      selectedRole: selectedRole,
+    );
+  }
 
-    if (storedRole != normalizedRole) {
-      throw Exception(
-        'This account is registered as $storedRole. Please choose the correct role to continue.',
-      );
+  void _rememberActiveRole(User? user, String role) {
+    _activeRoleUid = user?.uid;
+    _activeRole = user == null ? null : role;
+  }
+
+  void _clearActiveRole() {
+    _activeRoleUid = null;
+    _activeRole = null;
+  }
+
+  Future<void> _signOutAfterFailedGoogleLogin() async {
+    try {
+      await _googleSignIn.signOut();
+    } catch (error) {
+      debugPrint('TechCare Google sign-out cleanup error: $error');
     }
 
-    return storedRole;
+    try {
+      await _auth.signOut();
+    } finally {
+      _clearActiveRole();
+    }
   }
 }

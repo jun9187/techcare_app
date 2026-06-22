@@ -22,6 +22,7 @@ class _AddUserSheetState extends State<AddUserSheet> {
   final _passwordCtrl = TextEditingController();
   String _selectedRole = 'student';
   bool _loading = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -33,25 +34,28 @@ class _AddUserSheetState extends State<AddUserSheet> {
   }
 
   Future<void> _submit() async {
+    FocusScope.of(context).unfocus();
+
     if (_nameCtrl.text.trim().isEmpty ||
         _emailCtrl.text.trim().isEmpty ||
         _passwordCtrl.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all required fields.')),
-      );
+      setState(() {
+        _errorMessage = 'Please fill in all required fields.';
+      });
       return;
     }
 
     if (_passwordCtrl.text.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password must be at least 6 characters.'),
-        ),
-      );
+      setState(() {
+        _errorMessage = 'Password must be at least 6 characters.';
+      });
       return;
     }
 
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _errorMessage = null;
+    });
     try {
       await RepositoryProvider.of<AuthService>(context).createUserAsAdmin(
         email: _emailCtrl.text.trim(),
@@ -61,16 +65,13 @@ class _AddUserSheetState extends State<AddUserSheet> {
         role: _selectedRole,
       );
       if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('User created successfully.')),
-        );
+        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        setState(() {
+          _errorMessage = _friendlyError(e);
+        });
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -79,106 +80,168 @@ class _AddUserSheetState extends State<AddUserSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 32,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.white24,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'New User',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 20),
-          _field('Full Name *', Icons.person_outline_rounded, _nameCtrl),
-          const SizedBox(height: 12),
-          _field(
-            'Email Address *',
-            Icons.alternate_email_rounded,
-            _emailCtrl,
-            keyboardType: TextInputType.emailAddress,
-          ),
-          const SizedBox(height: 12),
-          _field('Matric Number', Icons.badge_outlined, _matricCtrl),
-          const SizedBox(height: 12),
-          _field(
-            'Password *',
-            Icons.lock_outline_rounded,
-            _passwordCtrl,
-            obscure: true,
-          ),
-          const SizedBox(height: 16),
-          Row(
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+
+    return SafeArea(
+      top: false,
+      child: AnimatedPadding(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        padding: EdgeInsets.only(bottom: keyboardInset),
+        child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              RoleOption(
-                label: 'Student',
-                icon: Icons.school_rounded,
-                selected: _selectedRole == 'student',
-                onTap: () => setState(() => _selectedRole = 'student'),
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
-              const SizedBox(width: 12),
-              RoleOption(
-                label: 'Admin',
-                icon: Icons.admin_panel_settings_rounded,
-                selected: _selectedRole == 'admin',
-                onTap: () => setState(() => _selectedRole = 'admin'),
+              const SizedBox(height: 20),
+              const Text(
+                'New User',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 20),
+              _field('Full Name *', Icons.person_outline_rounded, _nameCtrl),
+              const SizedBox(height: 12),
+              _field(
+                'Email Address *',
+                Icons.alternate_email_rounded,
+                _emailCtrl,
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 12),
+              _field('Matric Number', Icons.badge_outlined, _matricCtrl),
+              const SizedBox(height: 12),
+              _field(
+                'Password *',
+                Icons.lock_outline_rounded,
+                _passwordCtrl,
+                obscure: true,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  RoleOption(
+                    label: 'Student',
+                    icon: Icons.school_rounded,
+                    selected: _selectedRole == 'student',
+                    onTap: () => setState(() => _selectedRole = 'student'),
+                  ),
+                  const SizedBox(width: 12),
+                  RoleOption(
+                    label: 'Admin',
+                    icon: Icons.admin_panel_settings_rounded,
+                    selected: _selectedRole == 'admin',
+                    onTap: () => setState(() => _selectedRole = 'admin'),
+                  ),
+                ],
+              ),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                child: _errorMessage == null
+                    ? const SizedBox.shrink()
+                    : Padding(
+                        key: ValueKey(_errorMessage),
+                        padding: const EdgeInsets.only(top: 16),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: Colors.redAccent.withValues(alpha: 0.45),
+                            ),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(
+                                Icons.error_outline_rounded,
+                                color: Colors.redAccent,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  _errorMessage!,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    height: 1.35,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: utmMaroon,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  onPressed: _loading ? null : _submit,
+                  child: _loading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Create User',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: utmMaroon,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              onPressed: _loading ? null : _submit,
-              child: _loading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text(
-                      'Create User',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
+  }
+
+  String _friendlyError(Object error) {
+    final message = error.toString().replaceFirst('Exception: ', '');
+
+    if (message.contains('email-already-in-use')) {
+      return 'An account already exists for this email address.';
+    }
+    if (message.contains('invalid-email')) {
+      return 'Please enter a valid email address.';
+    }
+    if (message.contains('weak-password')) {
+      return 'The password is too weak. Please use a stronger password.';
+    }
+
+    return message;
   }
 
   Widget _field(
