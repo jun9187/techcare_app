@@ -67,10 +67,7 @@ class _AdminShellScreenState extends State<AdminShellScreen> {
           ),
         ],
       ),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: NavigationBar(
         backgroundColor: _cardGrey,
         indicatorColor: _utmMaroon.withValues(alpha: 0.22),
