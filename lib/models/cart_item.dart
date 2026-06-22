@@ -5,6 +5,7 @@ class CartItem {
   final String code;
   final int maxQuantity;
   int quantity;
+  final bool isConsumable;
 
   CartItem({
     required this.id,
@@ -13,5 +14,6 @@ class CartItem {
     required this.code,
     required this.quantity,
     required this.maxQuantity,
+    this.isConsumable = false,
   });
 }

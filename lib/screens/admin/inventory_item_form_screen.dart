@@ -95,6 +95,7 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
   late String _generatedCode;
   late String _selectedCategory;
   late String _selectedSubCategory;
+  late String _selectedAmountType;
   XFile? _selectedImage;
   String _imageUrl = '';
   bool _isSaving = false;
@@ -112,6 +113,7 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
       text: item?.description ?? '',
     );
     _imageUrl = item?.imageUrl ?? '';
+    _selectedAmountType = item?.amountType ?? 'unit';
 
     _selectedCategory =
         item?.category.isNotEmpty == true &&
@@ -150,6 +152,16 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
     setState(() {
       _selectedCategory = value;
       _selectedSubCategory = nextSubOptions.first;
+      // UX helper: if Category is set to 'Trivial' and Sub-category defaults/changes to 'Consumable',
+      // set amountType to 'consumable'. Otherwise set to 'unit'.
+      // Only do this when creating a new item since amountType is locked on edit.
+      if (!widget.isEditing) {
+        if (value == 'Trivial' && nextSubOptions.first == 'Consumable') {
+          _selectedAmountType = 'consumable';
+        } else {
+          _selectedAmountType = 'unit';
+        }
+      }
     });
   }
 
@@ -192,9 +204,10 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
         );
       }
 
-      final totalAmount = int.parse(_quantityController.text.trim());
-      final holdingAmount = base?.holdingAmount ?? 0;
-      final rentedAmount = base?.rentedAmount ?? 0;
+      final isConsumable = _selectedAmountType == 'consumable';
+      final totalAmount = isConsumable ? 0 : int.parse(_quantityController.text.trim());
+      final holdingAmount = isConsumable ? 0 : (base?.holdingAmount ?? 0);
+      final rentedAmount = isConsumable ? 0 : (base?.rentedAmount ?? 0);
       final item = InventoryItem(
         id: base?.id ?? '',
         code: code,
@@ -209,6 +222,7 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
         rentedAmount: rentedAmount,
         imageUrl: imageUrl,
         timestamp: base?.timestamp,
+        amountType: _selectedAmountType,
       );
 
       if (widget.isEditing) {
@@ -247,6 +261,21 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
           children: [
             _buildField(_nameController, 'Name'),
             _buildDropdownField(
+              label: 'Amount Type',
+              value: _selectedAmountType,
+              options: const ['unit', 'consumable'],
+              displayNames: const {
+                'unit': 'Unit',
+                'consumable': 'Consumable',
+              },
+              onChanged: widget.isEditing
+                  ? null
+                  : (value) {
+                      if (value == null) return;
+                      setState(() => _selectedAmountType = value);
+                    },
+            ),
+            _buildDropdownField(
               label: 'Category',
               value: _selectedCategory,
               options: _categoryOptions.keys.toList(),
@@ -261,25 +290,26 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
                 setState(() => _selectedSubCategory = value);
               },
             ),
-            _buildField(
-              _quantityController,
-              'Total Amount',
-              keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) return 'Required';
-                final parsed = int.tryParse(value.trim());
-                if (parsed == null) {
-                  return 'Enter a valid number';
-                }
-                final activeAmount =
-                    (widget.item?.holdingAmount ?? 0) +
-                    (widget.item?.rentedAmount ?? 0);
-                if (parsed < activeAmount) {
-                  return 'Must be at least $activeAmount';
-                }
-                return null;
-              },
-            ),
+            if (_selectedAmountType != 'consumable')
+              _buildField(
+                _quantityController,
+                'Total Amount',
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) return 'Required';
+                  final parsed = int.tryParse(value.trim());
+                  if (parsed == null) {
+                    return 'Enter a valid number';
+                  }
+                  final activeAmount =
+                      (widget.item?.holdingAmount ?? 0) +
+                      (widget.item?.rentedAmount ?? 0);
+                  if (parsed < activeAmount) {
+                    return 'Must be at least $activeAmount';
+                  }
+                  return null;
+                },
+              ),
             _buildField(_locationController, 'Location'),
             _buildField(_descriptionController, 'Description', maxLines: 4),
             _buildImageField(),
@@ -437,7 +467,8 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
     required String label,
     required String value,
     required List<String> options,
-    required ValueChanged<String?> onChanged,
+    required ValueChanged<String?>? onChanged,
+    Map<String, String>? displayNames,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -455,7 +486,10 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
         items: options
             .map(
               (option) =>
-                  DropdownMenuItem<String>(value: option, child: Text(option)),
+                  DropdownMenuItem<String>(
+                    value: option,
+                    child: Text(displayNames != null ? (displayNames[option] ?? option) : option),
+                  ),
             )
             .toList(),
         onChanged: onChanged,

@@ -15,6 +15,7 @@ class InventoryItem {
     required this.rentedAmount,
     required this.imageUrl,
     required this.timestamp,
+    this.amountType = 'unit',
   });
 
   final String id;
@@ -30,13 +31,16 @@ class InventoryItem {
   final int rentedAmount;
   final String imageUrl;
   final DateTime? timestamp;
+  final String amountType;
 
   int get quantity => availableAmount;
 
-  bool get isLowStock => availableAmount <= 3;
-  bool get isOutOfStock => availableAmount <= 0;
+  bool get isConsumable => amountType == 'consumable';
+  bool get isLowStock => !isConsumable && availableAmount <= 3;
+  bool get isOutOfStock => !isConsumable && availableAmount <= 0;
 
   String get statusLabel {
+    if (isConsumable) return 'Consumable';
     if (isOutOfStock) return 'Out of Stock';
     if (isLowStock) return 'Low Stock';
     return 'Available';
@@ -66,6 +70,11 @@ class InventoryItem {
         _readNullableInt(data, ['availableAmount']) ??
         computedAvailable.clamp(0, totalAmount).toInt();
 
+    var amountType = _readString(data, ['amountType', 'type']) ?? 'unit';
+    if (amountType == 'rental') {
+      amountType = 'unit';
+    }
+
     return InventoryItem(
       id: id,
       code: _readString(data, ['code']) ?? id,
@@ -84,25 +93,34 @@ class InventoryItem {
       rentedAmount: rentedAmount,
       imageUrl: _readString(data, ['image', 'imageUrl']) ?? '',
       timestamp: timestampValue is Timestamp ? timestampValue.toDate() : null,
+      amountType: amountType,
     );
   }
 
   Map<String, dynamic> toFirestore() {
-    return {
+    final data = <String, dynamic>{
       'code': code,
       'Name': name,
       'Category': category,
       'Sub-category': subCategory,
       'Description': description,
       'Location': location,
-      'totalAmount': totalAmount,
-      'availableAmount': availableAmount,
-      'holdingAmount': holdingAmount,
-      'rentedAmount': rentedAmount,
-      'Quantity': totalAmount,
       'image': imageUrl,
       'timestamp': FieldValue.serverTimestamp(),
+      'amountType': amountType,
     };
+
+    if (!isConsumable) {
+      data.addAll({
+        'totalAmount': totalAmount,
+        'availableAmount': availableAmount,
+        'holdingAmount': holdingAmount,
+        'rentedAmount': rentedAmount,
+        'Quantity': totalAmount,
+      });
+    }
+
+    return data;
   }
 
   InventoryItem copyWith({
@@ -118,6 +136,7 @@ class InventoryItem {
     int? rentedAmount,
     String? imageUrl,
     DateTime? timestamp,
+    String? amountType,
   }) {
     return InventoryItem(
       id: id,
@@ -133,6 +152,7 @@ class InventoryItem {
       rentedAmount: rentedAmount ?? this.rentedAmount,
       imageUrl: imageUrl ?? this.imageUrl,
       timestamp: timestamp ?? this.timestamp,
+      amountType: amountType ?? this.amountType,
     );
   }
 
