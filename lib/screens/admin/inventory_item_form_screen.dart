@@ -95,7 +95,7 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
   late String _generatedCode;
   late String _selectedCategory;
   late String _selectedSubCategory;
-  late String _selectedType;
+  late String _selectedAmountType;
   XFile? _selectedImage;
   String _imageUrl = '';
   bool _isSaving = false;
@@ -113,7 +113,7 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
       text: item?.description ?? '',
     );
     _imageUrl = item?.imageUrl ?? '';
-    _selectedType = item?.type ?? 'rental';
+    _selectedAmountType = item?.amountType ?? 'unit';
 
     _selectedCategory =
         item?.category.isNotEmpty == true &&
@@ -153,9 +153,14 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
       _selectedCategory = value;
       _selectedSubCategory = nextSubOptions.first;
       // UX helper: if Category is set to 'Trivial' and Sub-category defaults/changes to 'Consumable',
-      // set type to 'consumable'. Otherwise set type to 'rental'.
-      if (value == 'Trivial' && nextSubOptions.first == 'Consumable') {
-        _selectedType = 'consumable';
+      // set amountType to 'consumable'. Otherwise set to 'unit'.
+      // Only do this when creating a new item since amountType is locked on edit.
+      if (!widget.isEditing) {
+        if (value == 'Trivial' && nextSubOptions.first == 'Consumable') {
+          _selectedAmountType = 'consumable';
+        } else {
+          _selectedAmountType = 'unit';
+        }
       }
     });
   }
@@ -199,7 +204,7 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
         );
       }
 
-      final isConsumable = _selectedType == 'consumable';
+      final isConsumable = _selectedAmountType == 'consumable';
       final totalAmount = isConsumable ? 0 : int.parse(_quantityController.text.trim());
       final holdingAmount = isConsumable ? 0 : (base?.holdingAmount ?? 0);
       final rentedAmount = isConsumable ? 0 : (base?.rentedAmount ?? 0);
@@ -217,7 +222,7 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
         rentedAmount: rentedAmount,
         imageUrl: imageUrl,
         timestamp: base?.timestamp,
-        type: _selectedType,
+        amountType: _selectedAmountType,
       );
 
       if (widget.isEditing) {
@@ -256,17 +261,19 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
           children: [
             _buildField(_nameController, 'Name'),
             _buildDropdownField(
-              label: 'Item Type',
-              value: _selectedType,
-              options: const ['rental', 'consumable'],
+              label: 'Amount Type',
+              value: _selectedAmountType,
+              options: const ['unit', 'consumable'],
               displayNames: const {
-                'rental': 'Rental',
-                'consumable': 'Consumable (No Quantities)',
+                'unit': 'Unit',
+                'consumable': 'Consumable',
               },
-              onChanged: (value) {
-                if (value == null) return;
-                setState(() => _selectedType = value);
-              },
+              onChanged: widget.isEditing
+                  ? null
+                  : (value) {
+                      if (value == null) return;
+                      setState(() => _selectedAmountType = value);
+                    },
             ),
             _buildDropdownField(
               label: 'Category',
@@ -283,7 +290,7 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
                 setState(() => _selectedSubCategory = value);
               },
             ),
-            if (_selectedType != 'consumable')
+            if (_selectedAmountType != 'consumable')
               _buildField(
                 _quantityController,
                 'Total Amount',
@@ -460,7 +467,7 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
     required String label,
     required String value,
     required List<String> options,
-    required ValueChanged<String?> onChanged,
+    required ValueChanged<String?>? onChanged,
     Map<String, String>? displayNames,
   }) {
     return Container(

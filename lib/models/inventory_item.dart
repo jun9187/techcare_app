@@ -15,7 +15,7 @@ class InventoryItem {
     required this.rentedAmount,
     required this.imageUrl,
     required this.timestamp,
-    this.type = 'rental',
+    this.amountType = 'unit',
   });
 
   final String id;
@@ -31,11 +31,11 @@ class InventoryItem {
   final int rentedAmount;
   final String imageUrl;
   final DateTime? timestamp;
-  final String type;
+  final String amountType;
 
   int get quantity => availableAmount;
 
-  bool get isConsumable => type == 'consumable';
+  bool get isConsumable => amountType == 'consumable';
   bool get isLowStock => !isConsumable && availableAmount <= 3;
   bool get isOutOfStock => !isConsumable && availableAmount <= 0;
 
@@ -69,7 +69,11 @@ class InventoryItem {
     final availableAmount =
         _readNullableInt(data, ['availableAmount']) ??
         computedAvailable.clamp(0, totalAmount).toInt();
-    final type = _readString(data, ['type']) ?? 'rental';
+    
+    var amountType = _readString(data, ['amountType', 'type']) ?? 'unit';
+    if (amountType == 'rental') {
+      amountType = 'unit';
+    }
 
     return InventoryItem(
       id: id,
@@ -89,7 +93,7 @@ class InventoryItem {
       rentedAmount: rentedAmount,
       imageUrl: _readString(data, ['image', 'imageUrl']) ?? '',
       timestamp: timestampValue is Timestamp ? timestampValue.toDate() : null,
-      type: type,
+      amountType: amountType,
     );
   }
 
@@ -108,7 +112,7 @@ class InventoryItem {
       'Quantity': totalAmount,
       'image': imageUrl,
       'timestamp': FieldValue.serverTimestamp(),
-      'type': type,
+      'amountType': amountType,
     };
   }
 
@@ -125,7 +129,7 @@ class InventoryItem {
     int? rentedAmount,
     String? imageUrl,
     DateTime? timestamp,
-    String? type,
+    String? amountType,
   }) {
     return InventoryItem(
       id: id,
@@ -141,7 +145,7 @@ class InventoryItem {
       rentedAmount: rentedAmount ?? this.rentedAmount,
       imageUrl: imageUrl ?? this.imageUrl,
       timestamp: timestamp ?? this.timestamp,
-      type: type ?? this.type,
+      amountType: amountType ?? this.amountType,
     );
   }
 

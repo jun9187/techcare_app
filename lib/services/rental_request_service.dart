@@ -76,7 +76,8 @@ class RentalRequestService {
         }
 
         final itemData = itemDoc.data() ?? <String, dynamic>{};
-        final isConsumable = _readString(itemData, ['type']) == 'consumable';
+        final amountType = _readString(itemData, ['amountType', 'type']) ?? 'unit';
+        final isConsumable = amountType == 'consumable';
         if (isConsumable) {
           continue;
         }
@@ -154,7 +155,8 @@ class RentalRequestService {
         }
 
         final itemData = itemDoc.data() ?? <String, dynamic>{};
-        final isConsumable = _readString(itemData, ['type']) == 'consumable';
+        final amountType = _readString(itemData, ['amountType', 'type']) ?? 'unit';
+        final isConsumable = amountType == 'consumable';
         if (isConsumable) {
           continue;
         }
@@ -215,7 +217,8 @@ class RentalRequestService {
         }
 
         final itemData = itemDoc.data() ?? <String, dynamic>{};
-        final isConsumable = _readString(itemData, ['type']) == 'consumable';
+        final amountType = _readString(itemData, ['amountType', 'type']) ?? 'unit';
+        final isConsumable = amountType == 'consumable';
         if (isConsumable) {
           continue;
         }
@@ -276,7 +279,8 @@ class RentalRequestService {
         }
 
         final itemData = itemDoc.data() ?? <String, dynamic>{};
-        final isConsumable = _readString(itemData, ['type']) == 'consumable';
+        final amountType = _readString(itemData, ['amountType', 'type']) ?? 'unit';
+        final isConsumable = amountType == 'consumable';
         if (isConsumable) {
           continue;
         }
