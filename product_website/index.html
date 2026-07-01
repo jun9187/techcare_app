@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="TechCare is Airost Club's smart inventory and rental management mobile app."
+    />
+    <meta name="theme-color" content="#0d1016" />
+    <title>TechCare — Airost Inventory Manager</title>
+    <link rel="icon" type="image/png" href="assets/images/logo.png" />
+    <link rel="stylesheet" href="style.css?v=5" />
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <header class="site-header" data-header>
+      <div class="container nav-wrap">
+        <a class="brand" href="#home" aria-label="TechCare home">
+          <img src="assets/images/logo.png" alt="" />
+          <span>Tech<span>Care</span></span>
+        </a>
+
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="site-navigation"
+          aria-label="Open navigation"
+          data-nav-toggle
+        >
+          <span></span><span></span><span></span>
+        </button>
+
+        <nav id="site-navigation" class="site-nav" data-nav>
+          <a href="#home">Home</a>
+          <a href="#about">About</a>
+          <a href="#features">Features</a>
+          <a href="#screenshots">Screenshots</a>
+          <a href="#team">Team</a>
+          <a class="nav-cta" href="#contact">Contact</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section id="home" class="hero section-dark">
+        <div class="hero-glow hero-glow--red"></div>
+        <div class="hero-glow hero-glow--blue"></div>
+        <div class="container hero-grid">
+          <div class="hero-copy reveal">
+            <div class="eyebrow">
+              <span class="eyebrow-dot"></span>
+              Built for Airost Club
+            </div>
+            <p class="product-kicker">TechCare: Airost Inventory Manager</p>
+            <h1>Inventory clarity.<br /><em>Rentals without the paperwork.</em></h1>
+            <p class="hero-lede">
+              One mobile workspace for managing equipment, approving rentals,
+              tracking stock, and keeping every Airost member in sync.
+            </p>
+            <div class="hero-actions">
+              <a class="button button--primary" href="#features">
+                View features
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+              </a>
+              <a class="button button--ghost" href="#team">Meet the team</a>
+            </div>
+            <dl class="hero-stats" aria-label="Product highlights">
+              <div><dt>2</dt><dd>Dedicated roles</dd></div>
+              <div><dt>7</dt><dd>Core workflows</dd></div>
+              <div><dt>1</dt><dd>Shared source of truth</dd></div>
+            </dl>
+          </div>
+
+          <div class="hero-visual reveal" aria-label="TechCare mobile app preview">
+            <div class="orbit orbit--one"></div>
+            <div class="orbit orbit--two"></div>
+            <div class="phone phone--hero">
+              <div class="phone-top" aria-hidden="true"><span></span></div>
+              <img
+                src="assets/images/Sc_Login.png"
+                alt="TechCare login screen with student and admin role selection"
+              />
+            </div>
+            <div class="mini-screen mini-screen--inventory">
+              <span>Live inventory</span>
+              <img src="assets/images/Sc_inventoryList.png" alt="" />
+            </div>
+            <div class="status-chip">
+              <span class="status-icon">✓</span>
+              <span><strong>Request approved</strong><small>Status updated instantly</small></span>
+            </div>
+          </div>
+        </div>
+        <div class="container trust-strip reveal">
+          <span>Designed for</span>
+          <strong>Airost Club</strong>
+          <i></i>
+          <span>Mobile Application Programming</span>
+          <i></i>
+          <span>Group 6 · Object-Oriented Owls</span>
+        </div>
+      </section>
+
+      <section id="about" class="about section-light">
+        <div class="container">
+          <div class="section-heading section-heading--split reveal">
+            <div>
+              <p class="eyebrow eyebrow--dark">Why TechCare</p>
+              <h2>From scattered records to one reliable workflow.</h2>
+            </div>
+            <p>
+              Manual inventory logs make availability unclear, approvals slow,
+              and errors easy to miss. TechCare turns that fragmented process
+              into a focused mobile experience for both students and admins.
+            </p>
+          </div>
+
+          <div class="problem-solution">
+            <article class="story-card story-card--problem reveal">
+              <span class="story-number">01</span>
+              <div class="story-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.3 3.8 2.6 17.1A2 2 0 0 0 4.3 20h15.4a2 2 0 0 0 1.7-2.9L13.7 3.8a2 2 0 0 0-3.4 0Z" /></svg>
+              </div>
+              <p class="card-label">The problem</p>
+              <h3>Manual tracking creates blind spots.</h3>
+              <p>
+                Paper forms and disconnected records make it difficult to know
+                what is available, who has an item, and which request needs action.
+              </p>
+            </article>
+
+            <article class="story-card story-card--solution reveal">
+              <span class="story-number">02</span>
+              <div class="story-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M9 11 12 14 22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>
+              </div>
+              <p class="card-label">The solution</p>
+              <h3>A digital system everyone can follow.</h3>
+              <p>
+                TechCare connects inventory, rental requests, approval decisions,
+                stock levels, and member access in one clear workflow.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" class="features section-dark">
+        <div class="container">
+          <div class="section-heading reveal">
+            <p class="eyebrow">What it does</p>
+            <h2>Every essential workflow.<br /><em>Right in your pocket.</em></h2>
+            <p>
+              Purpose-built tools give admins control while keeping rental requests
+              simple and transparent for students.
+            </p>
+          </div>
+
+          <div class="feature-grid">
+            <article class="feature-card feature-card--users reveal">
+              <div class="feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm8-3v6m3-3h-6" /></svg>
+              </div>
+              <span class="feature-index">01</span>
+              <h3>Admin user management</h3>
+              <p>Add verified users, review account details, and manage student or admin roles.</p>
+              <div class="feature-preview feature-preview--users">
+                <img src="assets/images/Sc_UserManagement.png" alt="TechCare user management list" loading="lazy" />
+              </div>
+            </article>
+
+            <article class="feature-card reveal">
+              <div class="feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7ZM3.3 7 12 12l8.7-5M12 22V12" /></svg>
+              </div>
+              <span class="feature-index">02</span>
+              <h3>Inventory management</h3>
+              <p>Add, edit, categorize, and monitor detailed item records and availability.</p>
+            </article>
+
+            <article class="feature-card feature-card--blue reveal">
+              <div class="feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M4 19h16M6 16l4-12m4 12 4-12M5 9h14M4 14h16" /></svg>
+              </div>
+              <span class="feature-index">03</span>
+              <h3>Consumable item type</h3>
+              <p>Handle materials that do not require exact unit-by-unit quantity tracking.</p>
+            </article>
+
+            <article class="feature-card reveal">
+              <div class="feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M3 3h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L20.5 7H6M10 21h.01M17 21h.01" /></svg>
+              </div>
+              <span class="feature-index">04</span>
+              <h3>Student rental request</h3>
+              <p>Browse available items, add selections to a cart, and submit one clear request.</p>
+            </article>
+
+            <article class="feature-card feature-card--red reveal">
+              <div class="feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="m9 11 3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>
+              </div>
+              <span class="feature-index">05</span>
+              <h3>Admin rental approval</h3>
+              <p>Approve, reject, and mark returned items from a structured request record.</p>
+            </article>
+
+            <article class="feature-card feature-card--filter reveal">
+              <div class="feature-copy">
+                <div class="feature-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M4 5h16M7 12h10m-7 7h4M15 3v4m-6 3v4m3 3v4" /></svg>
+                </div>
+                <span class="feature-index">06</span>
+                <h3>Advanced request filters</h3>
+                <p>Find requests by name, matric number, status, item, or a precise date range.</p>
+              </div>
+              <div class="filter-tags" aria-label="Available filters">
+                <span>Name</span><span>Matric no.</span><span>Status</span><span>Item</span><span>Date range</span>
+              </div>
+            </article>
+
+            <article class="feature-card feature-card--status reveal">
+              <div class="feature-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 2v4m0 12v4M4.9 4.9l2.8 2.8m8.6 8.6 2.8 2.8M2 12h4m12 0h4M4.9 19.1l2.8-2.8m8.6-8.6 2.8-2.8" /></svg>
+              </div>
+              <span class="feature-index">07</span>
+              <h3>Real-time status tracking</h3>
+              <p>Students always know whether a request is pending, approved, rejected, or returned.</p>
+              <div class="status-list"><span>Pending</span><span>Approved</span><span>Returned</span></div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="screenshots" class="screenshots section-blue">
+        <div class="container">
+          <div class="section-heading section-heading--split reveal">
+            <div>
+              <p class="eyebrow eyebrow--blue">App preview</p>
+              <h2>Designed for focus,<br />built for action.</h2>
+            </div>
+            <div class="gallery-intro">
+              <p>Explore the core TechCare experiences for admins and students.</p>
+              <div class="gallery-controls">
+                <button type="button" data-gallery-prev aria-label="Previous screenshots">←</button>
+                <button type="button" data-gallery-next aria-label="Next screenshots">→</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="screenshot-track" data-gallery tabindex="0" aria-label="App screenshot gallery">
+          <!-- Replace any image below with a newer app screenshot while keeping the same filename. -->
+          <figure class="shot-card">
+            <div class="phone phone--gallery"><img src="assets/images/Sc_adminHome.png" alt="Admin dashboard" loading="lazy" /></div>
+            <figcaption><span>01</span><strong>Admin dashboard</strong><small>Core workflows at a glance</small></figcaption>
+          </figure>
+          <figure class="shot-card">
+            <div class="phone phone--gallery"><img src="assets/images/Sc_UserManagement.png" alt="User management screen" loading="lazy" /></div>
+            <figcaption><span>02</span><strong>User management</strong><small>Verified, role-based access</small></figcaption>
+          </figure>
+          <figure class="shot-card">
+            <div class="phone phone--gallery"><img src="assets/images/Sc_inventoryList.png" alt="Inventory list" loading="lazy" /></div>
+            <figcaption><span>03</span><strong>Inventory control</strong><small>Searchable stock visibility</small></figcaption>
+          </figure>
+          <figure class="shot-card">
+            <div class="phone phone--gallery"><img src="assets/images/Sc_itemDetailsConsumable.png" alt="Consumable inventory item details" loading="lazy" /></div>
+            <figcaption><span>04</span><strong>Consumable items</strong><small>Flexible item handling</small></figcaption>
+          </figure>
+          <figure class="shot-card">
+            <div class="phone phone--gallery"><img src="assets/images/Sc_RentalFilter.png" alt="Advanced rental request filters" loading="lazy" /></div>
+            <figcaption><span>05</span><strong>Advanced filters</strong><small>Find the right request fast</small></figcaption>
+          </figure>
+          <figure class="shot-card">
+            <div class="phone phone--gallery"><img src="assets/images/Sc_cart.png" alt="Student rental request cart" loading="lazy" /></div>
+            <figcaption><span>06</span><strong>Student cart</strong><small>Simple multi-item requests</small></figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="benefits section-light" aria-labelledby="benefits-title">
+        <div class="container benefits-grid">
+          <div class="benefits-copy reveal">
+            <p class="eyebrow eyebrow--dark">Built for better operations</p>
+            <h2 id="benefits-title">Less admin work.<br />More time to build.</h2>
+            <p>
+              TechCare makes everyday equipment access faster without giving up
+              the control and traceability the club needs.
+            </p>
+            <div class="benefit-visual">
+              <img src="assets/images/Sc_studentHome.png" alt="TechCare student home screen" loading="lazy" />
+              <div><strong>One app</strong><span>Two focused experiences</span></div>
+            </div>
+          </div>
+          <ul class="benefit-list reveal">
+            <li><span>01</span><div><strong>Saves member time</strong><p>Students request equipment without chasing forms or updates.</p></div></li>
+            <li><span>02</span><div><strong>Reduces manual tracking</strong><p>Requests and item records stay together in one system.</p></div></li>
+            <li><span>03</span><div><strong>Improves inventory accuracy</strong><p>Availability is visible before a request is submitted.</p></div></li>
+            <li><span>04</span><div><strong>Simplifies approvals</strong><p>Admins review complete request details and act quickly.</p></div></li>
+            <li><span>05</span><div><strong>Protects system access</strong><p>Role-based entry keeps the experience limited to verified users.</p></div></li>
+            <li><span>06</span><div><strong>Supports every item type</strong><p>Track standard stock and flexible consumable materials.</p></div></li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="team" class="team section-dark">
+        <div class="container">
+          <div class="section-heading section-heading--center reveal">
+            <p class="eyebrow">Object-Oriented Owls</p>
+            <h2>Meet Group 6.</h2>
+            <p>Four teammates shaping one simpler way to manage Airost inventory.</p>
+          </div>
+          <div class="team-grid">
+            <!-- Replace each .member-photo placeholder with an <img> when team photos are ready. -->
+            <article class="member-card reveal">
+              <div class="member-photo member-photo--image">
+                <img
+                  src="assets/images/benjamin-chew.jpg"
+                  alt="Benjamin Chew Jun Jie"
+                  loading="lazy"
+                />
+              </div>
+              <div class="member-meta"><p>Product Owner / Developer</p><h3>Benjamin Chew<br />Jun Jie</h3><span>01</span></div>
+            </article>
+            <article class="member-card reveal">
+              <div class="member-photo member-photo--image member-photo--izmeer">
+                <img
+                  src="assets/images/muhammad-izmeer.jpg"
+                  alt="Muhammad Izmeer"
+                  loading="lazy"
+                />
+              </div>
+              <div class="member-meta"><p>Scrum Master / Developer</p><h3>Muhammad<br />Izmeer</h3><span>02</span></div>
+            </article>
+            <article class="member-card reveal">
+              <div class="member-photo member-photo--cream" aria-label="Photo placeholder for Humaira Sheyla Nurfayza"><span>HS</span></div>
+              <div class="member-meta"><p>Developer</p><h3>Humaira Sheyla<br />Nurfayza</h3><span>03</span></div>
+            </article>
+            <article class="member-card reveal">
+              <div class="member-photo member-photo--red" aria-label="Photo placeholder for Raihan"><span>R</span></div>
+              <div class="member-meta"><p>Developer</p><h3>Raihan</h3><span>04</span></div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact" class="contact section-red">
+        <div class="container contact-grid">
+          <div class="contact-copy reveal">
+            <p class="eyebrow">Project details</p>
+            <h2>Built to make club operations feel effortless.</h2>
+            <p>
+              TechCare Inventory Management System is a final project by Group 6
+              for Mobile Application Programming.
+            </p>
+            <a class="button button--light" href="mailto:your-email@example.com">
+              Contact the team <span>↗</span>
+            </a>
+            <small>Placeholder email — replace before publishing.</small>
+            <div class="contact-links" aria-label="Placeholder social links">
+              <a href="#" data-placeholder-link>GitHub <span>placeholder</span></a>
+              <a href="#" data-placeholder-link>LinkedIn <span>placeholder</span></a>
+            </div>
+          </div>
+          <dl class="project-details reveal">
+            <div><dt>Project</dt><dd>TechCare Inventory Management System</dd></div>
+            <div><dt>Group</dt><dd>Group 6 Object-Oriented Owls</dd></div>
+            <div><dt>Course</dt><dd>Mobile Application Programming</dd></div>
+            <div><dt>Platform</dt><dd>Flutter mobile application</dd></div>
+          </dl>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-main">
+        <a class="brand brand--footer" href="#home">
+          <img src="assets/images/logo.png" alt="" />
+          <span>Tech<span>Care</span></span>
+        </a>
+        <p>Smart inventory and rental management for Airost Club.</p>
+        <nav aria-label="Footer navigation">
+          <a href="#about">About</a><a href="#features">Features</a><a href="#screenshots">Screenshots</a><a href="#team">Team</a>
+        </nav>
+      </div>
+      <div class="container footer-bottom">
+        <span>© <span data-year></span> TechCare · Group 6 Object-Oriented Owls</span>
+        <span>Made for Mobile Application Programming</span>
+      </div>
+    </footer>
+  </body>
+</html>
