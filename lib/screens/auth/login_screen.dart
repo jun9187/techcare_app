@@ -75,25 +75,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
           return SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(28, 28, 28, 36),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 36),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.only(top: 32, bottom: 12),
+                    padding: const EdgeInsets.only(top: 4, bottom: 12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
-                          'TechCare',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
+                        const _TechCareBrand(),
+                        const SizedBox(height: 12),
                         Text(
                           'Welcome back',
                           style: TextStyle(
@@ -261,6 +254,26 @@ class _LoginScreenState extends State<LoginScreen> {
           icon: Icon(icon, color: Colors.white38, size: 22),
           border: InputBorder.none,
         ),
+      ),
+    );
+  }
+}
+
+class _TechCareBrand extends StatelessWidget {
+  const _TechCareBrand();
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'TechCare Inventory and Rental Management, Airost Club',
+      image: true,
+      child: Image.asset(
+        'assets/branding/techcare_logo_dark_cropped.png',
+        width: double.infinity,
+        height: 116,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.high,
+        excludeFromSemantics: true,
       ),
     );
   }

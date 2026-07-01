@@ -49,6 +49,22 @@ class _AdminShellScreenState extends State<AdminShellScreen> {
       backgroundColor: _backgroundDark,
       appBar: AppBar(
         backgroundColor: _backgroundDark,
+        toolbarHeight: 70,
+        leadingWidth: 72,
+        leading: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 6, 4, 6),
+          child: ClipRect(
+            child: Transform.scale(
+              scale: 1.28,
+              child: Image.asset(
+                'assets/branding/techcare_logo.png',
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.high,
+                semanticLabel: 'TechCare logo',
+              ),
+            ),
+          ),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
